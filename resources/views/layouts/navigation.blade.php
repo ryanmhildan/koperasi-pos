@@ -40,9 +40,10 @@
                         </button>
                         <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <a href="{{ route('pos.kasir') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Kasir</a>
+                            <a href="{{ route('pos.cash-drawer') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Shift Kasir</a>
                             <a href="{{ route('pos.products') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Produk</a>
                             <a href="{{ route('pos.stock') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Stok</a>
-                            <a href="{{ route('pos.grn') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Penerimaan Barang</a>
+                            <a href="{{ route('pos.grn.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Penerimaan Barang</a>
                         </div>
                     </div>
                     @endrole
@@ -58,6 +59,10 @@
                         <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <a href="{{ route('admin.users') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengguna</a>
                             <a href="{{ route('admin.roles') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Role</a>
+                            <a href="{{ route('admin.pricing') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen Harga</a>
+                            <a href="{{ route('admin.locations') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen Lokasi</a>
+                            <a href="{{ route('admin.categories') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen Kategori</a>
+                            <a href="{{ route('admin.units') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen Unit</a>
                         </div>
                     </div>
                     @endrole

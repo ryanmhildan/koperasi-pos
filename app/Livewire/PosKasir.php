@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock};
+use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price};
 use Illuminate\Support\Str;
 
 class PosKasir extends Component
@@ -95,8 +95,8 @@ class PosKasir extends Component
             return;
         }
 
-        if (!$this->cashDrawer) {
-            session()->flash('error', 'Tidak ada shift aktif!');
+        if (!$this->cashDrawer || !$this->cashDrawer->location_id) {
+            session()->flash('error', 'Tidak ada shift/lokasi aktif!');
             return;
         }
 
@@ -115,16 +115,24 @@ class PosKasir extends Component
         ]);
 
         foreach ($this->cart as $item) {
+            // Fetch the cost price for the product at the drawer's location
+            $costPrice = Price::where('product_id', $item['product_id'])
+                              ->where('location_id', $this->cashDrawer->location_id)
+                              ->value('average_price');
+
             SalesTransactionDetail::create([
                 'transaction_id' => $transaction->transaction_id,
                 'product_id' => $item['product_id'],
                 'quantity' => $item['quantity'],
                 'selling_price' => $item['price'],
+                'average_price' => $costPrice, // Save the cost price
                 'total_price' => $item['price'] * $item['quantity'],
             ]);
 
             // Update stock
-            $stock = Stock::where('product_id', $item['product_id'])->first();
+            $stock = Stock::where('product_id', $item['product_id'])
+                          ->where('location_id', $this->cashDrawer->location_id)
+                          ->first();
             if ($stock) {
                 $stock->decrement('current_stock', $item['quantity']);
             }

@@ -1,3 +1,4 @@
+
 <div class="p-4 sm:p-6 lg:p-8">
     @if (session()->has('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">

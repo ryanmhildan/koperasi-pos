@@ -24,8 +24,8 @@ class CashDrawer extends Model
         'total_cash_in' => 'decimal:2',
         'total_cash_out' => 'decimal:2',
         'shift_date' => 'date',
-        'shift_start' => 'time',
-        'shift_end' => 'time',
+        'shift_start' => 'datetime',
+        'shift_end' => 'datetime',
     ];
 
     public function user()

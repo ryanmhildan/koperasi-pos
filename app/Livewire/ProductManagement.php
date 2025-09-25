@@ -13,7 +13,6 @@ class ProductManagement extends Component
     use WithPagination;
 
     public $search = '';
-    public $showModal = false;
     public $editMode = false;
     public $productId;
     
@@ -39,7 +38,7 @@ class ProductManagement extends Component
     public function create()
     {
         $this->resetInputFields();
-        $this->showModal = true;
+        $this->dispatch('open-modal', 'product-form-modal');
     }
 
     public function store()
@@ -81,7 +80,7 @@ class ProductManagement extends Component
         $this->is_active = $product->is_active;
         
         $this->editMode = true;
-        $this->showModal = true;
+        $this->dispatch('open-modal', 'product-form-modal');
     }
 
     public function update()
@@ -118,7 +117,7 @@ class ProductManagement extends Component
 
     public function closeModal()
     {
-        $this->showModal = false;
+        $this->dispatch('close-modal', 'product-form-modal');
         $this->resetInputFields();
     }
 

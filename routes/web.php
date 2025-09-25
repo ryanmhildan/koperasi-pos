@@ -33,14 +33,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/kasir', PosKasir::class)->name('kasir');
         Route::get('/products', ProductManagement::class)->name('products');
         Route::get('/stock', StockManagement::class)->name('stock');
-        // Assuming GRN management needs a new component.
-        Route::get('/grn', function() { return view('livewire.coming-soon'); })->name('grn');
+        Route::get('/cash-drawer', \App\Livewire\CashDrawer::class)->name('cash-drawer');
+        
+        // GRN Routes
+        Route::get('/grn', \App\Livewire\GrnList::class)->name('grn.index');
+        Route::get('/grn/create', \App\Livewire\GrnCreate::class)->name('grn.create');
     });
 
     // Admin only routes
     Route::middleware(['role:Admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', UserManagement::class)->name('users');
         Route::get('/roles', RoleManagement::class)->name('roles');
+        Route::get('/pricing', \App\Livewire\PriceManagement::class)->name('pricing');
+        Route::get('/locations', \App\Livewire\LocationManagement::class)->name('locations');
+        Route::get('/categories', \App\Livewire\CategoryManagement::class)->name('categories');
+        Route::get('/units', \App\Livewire\UnitManagement::class)->name('units');
     });
     
     // Profile route from Laravel Breeze

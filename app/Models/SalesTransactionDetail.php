@@ -12,7 +12,7 @@ class SalesTransactionDetail extends Model
     protected $primaryKey = 'detail_id';
     
     protected $fillable = [
-        'transaction_id', 'product_id', 'quantity', 'selling_price', 'total_price'
+        'transaction_id', 'product_id', 'quantity', 'selling_price', 'average_price', 'total_price'
     ];
 
     protected $casts = [
