@@ -13,6 +13,7 @@ class ProductManagement extends Component
     use WithPagination;
 
     public $search = '';
+    public $showModal = false;
     public $editMode = false;
     public $productId;
     
@@ -20,15 +21,18 @@ class ProductManagement extends Component
     public $selling_price, $is_stock_item = true, $product_type = 'retail';
     public $minimum_stock = 0, $track_expiry = false, $is_active = true;
 
-    protected $rules = [
-        'product_code' => 'required|unique:products,product_code',
-        'product_name' => 'required',
-        'category_id' => 'required|exists:categories,category_id',
-        'unit_id' => 'required|exists:units,unit_id',
-        'selling_price' => 'required|numeric|min:0',
-        'product_type' => 'required|in:retail,catering_package,service',
-        'minimum_stock' => 'required|integer|min:0',
-    ];
+    protected function rules()
+    {
+        return [
+            'product_code' => 'required|unique:products,product_code,' . $this->productId . ',product_id',
+            'product_name' => 'required',
+            'category_id' => 'required|exists:categories,category_id',
+            'unit_id' => 'required|exists:units,unit_id',
+            'selling_price' => 'nullable|numeric|min:0',
+            'product_type' => 'required|in:retail,catering_package,service',
+            'minimum_stock' => 'required|integer|min:0',
+        ];
+    }
 
     public function updatingSearch()
     {
@@ -38,28 +42,31 @@ class ProductManagement extends Component
     public function create()
     {
         $this->resetInputFields();
-        $this->dispatch('open-modal', 'product-form-modal');
+        $this->showModal = true;
     }
 
     public function store()
     {
-        $this->validate();
+        $this->validate($this->rules());
 
-        Product::create([
-            'product_code' => $this->product_code,
-            'barcode' => $this->barcode,
-            'product_name' => $this->product_name,
-            'category_id' => $this->category_id,
-            'unit_id' => $this->unit_id,
-            'selling_price' => $this->selling_price,
-            'is_stock_item' => $this->is_stock_item,
-            'product_type' => $this->product_type,
-            'minimum_stock' => $this->minimum_stock,
-            'track_expiry' => $this->track_expiry,
-            'is_active' => $this->is_active,
-        ]);
-
-        session()->flash('message', 'Produk berhasil ditambahkan.');
+        $product = new Product();
+        $product->product_code = $this->product_code;
+        $product->barcode = $this->barcode;
+        $product->product_name = $this->product_name;
+        $product->category_id = $this->category_id;
+        $product->unit_id = $this->unit_id;
+        $product->selling_price = $this->selling_price === '' ? null : $this->selling_price;
+        $product->is_stock_item = $this->is_stock_item;
+        $product->product_type = $this->product_type;
+        $product->minimum_stock = $this->minimum_stock;
+        $product->track_expiry = $this->track_expiry;
+        $product->is_active = $this->is_active;
+        
+        if ($product->save()) {
+            session()->flash('message', 'Produk berhasil ditambahkan.');
+        } else {
+            session()->flash('error', 'Gagal menyimpan produk. Silakan coba lagi.');
+        }
         $this->closeModal();
     }
 
@@ -80,15 +87,12 @@ class ProductManagement extends Component
         $this->is_active = $product->is_active;
         
         $this->editMode = true;
-        $this->dispatch('open-modal', 'product-form-modal');
+        $this->showModal = true;
     }
 
     public function update()
     {
-        $rules = $this->rules;
-        $rules['product_code'] = 'required|unique:products,product_code,' . $this->productId . ',product_id';
-        
-        $this->validate($rules);
+        $this->validate($this->rules());
 
         $product = Product::findOrFail($this->productId);
         $product->update([
@@ -97,7 +101,7 @@ class ProductManagement extends Component
             'product_name' => $this->product_name,
             'category_id' => $this->category_id,
             'unit_id' => $this->unit_id,
-            'selling_price' => $this->selling_price,
+            'selling_price' => $this->selling_price === '' ? null : $this->selling_price,
             'is_stock_item' => $this->is_stock_item,
             'product_type' => $this->product_type,
             'minimum_stock' => $this->minimum_stock,
@@ -108,6 +112,15 @@ class ProductManagement extends Component
         session()->flash('message', 'Produk berhasil diupdate.');
         $this->closeModal();
     }
+    
+    public function save()
+    {
+        if ($this->editMode) {
+            $this->update();
+        } else {
+            $this->store();
+        }
+    }
 
     public function delete($id)
     {
@@ -117,7 +130,7 @@ class ProductManagement extends Component
 
     public function closeModal()
     {
-        $this->dispatch('close-modal', 'product-form-modal');
+        $this->showModal = false;
         $this->resetInputFields();
     }
 

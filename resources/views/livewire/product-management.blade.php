@@ -6,13 +6,18 @@
                     <h2 class="text-2xl font-semibold mb-4">Manajemen Produk</h2>
 
                     @if (session()->has('message'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ session('message') }}</span>
+                        <div class="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+                    @if (session()->has('error'))
+                        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                            {{ session('error') }}
                         </div>
                     @endif
 
                     <div class="flex justify-between items-center mb-4">
-                        <x-primary-button wire:click="create">
+                        <x-primary-button wire:click="create" type="button">
                             Tambah Produk
                         </x-primary-button>
                         <x-text-input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari produk..." class="w-1/3" />
@@ -36,8 +41,8 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $product->product_code }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $product->product_name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->category->name ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->unit->name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->category->category_name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->unit->unit_name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if ($product->is_active)
@@ -71,94 +76,93 @@
     </div>
 
     <!-- Create/Edit Product Modal -->
-    <x-modal name="product-form-modal" maxWidth="2xl">
-        <x-slot name="title">
-            {{ $editMode ? 'Edit Produk' : 'Tambah Produk' }}
-        </x-slot>
+    <x-modal :show="$showModal" name="product-form-modal" maxWidth="2xl">
+        <form wire:submit.prevent="save" class="p-6">
 
-        <x-slot name="content">
-            <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <x-input-label for="product_code" value="Kode Produk" />
-                        <x-text-input wire:model="product_code" id="product_code" type="text" class="mt-1 block w-full" />
-                        @error('product_code') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="barcode" value="Barcode" />
-                        <x-text-input wire:model="barcode" id="barcode" type="text" class="mt-1 block w-full" />
-                        @error('barcode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="md:col-span-2">
-                        <x-input-label for="product_name" value="Nama Produk" />
-                        <x-text-input wire:model="product_name" id="product_name" type="text" class="mt-1 block w-full" />
-                        @error('product_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="category_id" value="Kategori" />
-                        <select wire:model="category_id" id="category_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            <option value="">Pilih Kategori</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->category_id }}">{{ $category->category_name }}</option>
-                            @endforeach
-                        </select>
-                        @error('category_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="unit_id" value="Unit" />
-                        <select wire:model="unit_id" id="unit_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            <option value="">Pilih Unit</option>
-                            @foreach ($units as $unit)
-                                <option value="{{ $unit->unit_id }}">{{ $unit->unit_name }}</option>
-                            @endforeach
-                        </select>
-                        @error('unit_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="selling_price" value="Harga Jual" />
-                        <x-text-input wire:model="selling_price" id="selling_price" type="number" step="any" class="mt-1 block w-full" />
-                        @error('selling_price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="minimum_stock" value="Stok Minimum" />
-                        <x-text-input wire:model="minimum_stock" id="minimum_stock" type="number" class="mt-1 block w-full" />
-                        @error('minimum_stock') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <x-input-label for="product_type" value="Tipe Produk" />
-                        <select wire:model="product_type" id="product_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            @foreach ($productTypes as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
-                        @error('product_type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="md:col-span-2 flex items-center space-x-6 pt-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" wire:model="is_stock_item" class="rounded border-gray-300 text-indigo-600 shadow-sm">
-                            <span class="ml-2 text-sm text-gray-600">Item Stok</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" wire:model="track_expiry" class="rounded border-gray-300 text-indigo-600 shadow-sm">
-                            <span class="ml-2 text-sm text-gray-600">Lacak Kadaluarsa</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" wire:model="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm">
-                            <span class="ml-2 text-sm text-gray-600">Aktif</span>
-                        </label>
-                    </div>
+            <h2 class="text-lg font-medium text-gray-900">
+                {{ $editMode ? 'Edit Produk' : 'Tambah Produk' }}
+            </h2>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <x-input-label for="product_code" value="Kode Produk" />
+                    <x-text-input wire:model.defer="product_code" id="product_code" type="text" class="mt-1 block w-full" />
+                    @error('product_code') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
-            </form>
-        </x-slot>
+                <div>
+                    <x-input-label for="barcode" value="Barcode" />
+                    <x-text-input wire:model.defer="barcode" id="barcode" type="text" class="mt-1 block w-full" />
+                    @error('barcode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="product_name" value="Nama Produk" />
+                    <x-text-input wire:model.defer="product_name" id="product_name" type="text" class="mt-1 block w-full" />
+                    @error('product_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="category_id" value="Kategori" />
+                    <select wire:model.defer="category_id" id="category_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="">Pilih Kategori</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->category_id }}">{{ $category->category_name }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="unit_id" value="Unit" />
+                    <select wire:model.defer="unit_id" id="unit_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="">Pilih Unit</option>
+                        @foreach ($units as $unit)
+                            <option value="{{ $unit->unit_id }}">{{ $unit->unit_name }}</option>
+                        @endforeach
+                    </select>
+                    @error('unit_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="selling_price" value="Harga Jual (Opsional)" />
+                    <x-text-input wire:model.defer="selling_price" id="selling_price" type="number" step="any" class="mt-1 block w-full" />
+                    @error('selling_price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="minimum_stock" value="Stok Minimum" />
+                    <x-text-input wire:model.defer="minimum_stock" id="minimum_stock" type="number" class="mt-1 block w-full" />
+                    @error('minimum_stock') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="product_type" value="Tipe Produk" />
+                    <select wire:model.defer="product_type" id="product_type" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        @foreach ($productTypes as $key => $value)
+                            <option value="{{ $key }}">{{ $value }}</option>
+                        @endforeach
+                    </select>
+                    @error('product_type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div class="md:col-span-2 flex items-center space-x-6 pt-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" wire:model.defer="is_stock_item" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-600">Item Stok</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" wire:model.defer="track_expiry" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-600">Lacak Kadaluarsa</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" wire:model.defer="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-600">Aktif</span>
+                    </label>
+                </div>
+            </div>
 
-        <x-slot name="footer">
-            <x-secondary-button wire:click="closeModal">
-                Batal
-            </x-secondary-button>
+            <div class="mt-6 flex justify-end">
+                <x-secondary-button x-on:click="$dispatch('close')">
+                    Batal
+                </x-secondary-button>
 
-            <x-primary-button class="ml-2" wire:click="{{ $editMode ? 'update' : 'store' }}">
-                Simpan
-            </x-primary-button>
-        </x-slot>
+                <x-primary-button class="ml-3">
+                    Simpan
+                </x-primary-button>
+            </div>
+        </form>
     </x-modal>
 </div>

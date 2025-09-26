@@ -40,7 +40,7 @@ class LoginForm extends Form
 
         RateLimiter::clear($this->throttleKey());
     }
-
+ 
     /**
      * Ensure the authentication request is not rate limited.
      */

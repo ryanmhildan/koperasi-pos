@@ -10,7 +10,6 @@ class LocationManagement extends Component
 {
     use WithPagination;
 
-    public $showModal = false;
     public $editMode = false;
     public $locationId;
 
@@ -28,7 +27,6 @@ class LocationManagement extends Component
     public function create()
     {
         $this->resetInputFields();
-        $this->showModal = true;
     }
 
     public function store()
@@ -53,7 +51,6 @@ class LocationManagement extends Component
         $this->address = $location->address;
         $this->is_active = $location->is_active;
         $this->editMode = true;
-        $this->showModal = true;
     }
 
     public function update()
@@ -81,6 +78,7 @@ class LocationManagement extends Component
     {
         $this->showModal = false;
         $this->resetInputFields();
+        $this->dispatch('close-modal', 'location-form-modal');
     }
 
     private function resetInputFields()

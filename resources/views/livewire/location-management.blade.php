@@ -41,7 +41,12 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <x-secondary-button wire:click="edit({{ $location->location_id }})">Edit</x-secondary-button>
+                                            <div x-data="{}">
+                                                <x-secondary-button 
+                                                    wire:click="edit({{ $location->location_id }})" 
+                                                    x-on:click="$dispatch('open-modal', 'location-form-modal')"
+                                                >Edit</x-secondary-button>
+                                            </div>
                                             <x-danger-button wire:click="delete({{ $location->location_id }})" wire:confirm="Anda yakin ingin menghapus lokasi ini?">Hapus</x-danger-button>
                                         </td>
                                     </tr>
@@ -63,27 +68,27 @@
     </div>
 
     <!-- Create/Edit Location Modal -->
-    <x-modal name="location-form-modal" :show="$showModal" maxWidth="lg">
+    <x-modal name="location-form-modal" maxWidth="lg">
         <x-slot name="title">
             {{ $editMode ? 'Edit Lokasi' : 'Tambah Lokasi' }}
         </x-slot>
 
         <x-slot name="content">
-            <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
+            <form id="location-form" wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
                 <div class="space-y-4">
                     <div>
                         <x-input-label for="location_name" value="Nama Lokasi" />
-                        <x-text-input wire:model="location_name" id="location_name" type="text" class="mt-1 block w-full" />
+                        <x-text-input wire:model.defer="location_name" id="location_name" type="text" class="mt-1 block w-full" />
                         @error('location_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <x-input-label for="address" value="Alamat" />
-                        <textarea wire:model="address" id="address" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
+                        <textarea wire:model.defer="address" id="address" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
                         @error('address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="flex items-center">
-                            <input type="checkbox" wire:model="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm">
+                            <input type="checkbox" wire:model.defer="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm">
                             <span class="ml-2 text-sm text-gray-600">Aktif</span>
                         </label>
                     </div>
@@ -96,7 +101,7 @@
                 Batal
             </x-secondary-button>
 
-            <x-primary-button class="ml-2" wire:click="{{ $editMode ? 'update' : 'store' }}">
+            <x-primary-button type="submit" form="location-form" class="ml-2">
                 Simpan
             </x-primary-button>
         </x-slot>

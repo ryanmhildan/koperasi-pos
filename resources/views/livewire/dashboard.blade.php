@@ -1,89 +1,109 @@
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+<div class="max-w-5xl mx-auto pt-8 pb-8">
+    <!-- Welcome Header (Centered) -->
+    <div class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-gray-800">Hallo, {{ auth()->user()->full_name }}!</h1>
+        <p class="mt-2 text-lg text-gray-500">Selamat datang kembali.</p>
+    </div>
 
-            <!-- Total Anggota -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-medium text-gray-500">Total Anggota</h3>
-                    <p class="mt-1 text-3xl font-semibold">{{ number_format($total_anggota) }}</p>
-                </div>
-            </div>
-
-            <!-- Total Simpanan -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-medium text-gray-500">Total Simpanan</h3>
-                    <p class="mt-1 text-3xl font-semibold">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <!-- Total Pinjaman Aktif -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-medium text-gray-500">Pinjaman Aktif</h3>
-                    <p class="mt-1 text-3xl font-semibold">Rp {{ number_format($total_pinjaman_aktif, 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <!-- Penjualan Hari Ini -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-medium text-gray-500">Penjualan Hari Ini</h3>
-                    <p class="mt-1 text-3xl font-semibold">Rp {{ number_format($penjualan_hari_ini, 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <!-- Produk Stok Menipis -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-red-600">
-                    <h3 class="text-lg font-medium text-red-500">Produk Stok Menipis</h3>
-                    <p class="mt-1 text-3xl font-semibold">{{ number_format($produk_stok_menipis) }}</p>
-                </div>
-            </div>
-
-            @role('Admin')
-            <!-- User Management -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <a href="{{ route('admin.users') }}" class="block p-6 text-gray-900 hover:bg-gray-50">
-                    <h3 class="text-lg font-medium text-gray-500">Manajemen Pengguna</h3>
-                    <p class="mt-1 text-3xl font-semibold">Kelola &rarr;</p>
-                </a>
-            </div>
-            @endrole
-        </div>
-
-        <!-- Recent Transactions -->
-        <div class="mt-8 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900">Transaksi Terakhir</h3>
-                <div class="mt-4 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Transaksi</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kasir</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse ($recent_transactions as $transaction)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $transaction->transaction_number }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->cashier->full_name ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->transaction_date->format('d M Y, H:i') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Tidak ada transaksi terbaru.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Search Bar Placeholder (Centered) -->
+    <div class="mb-12 px-6">
+        <div class="relative max-w-lg mx-auto">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+            <input type="text" placeholder="Cari menu atau fitur..." class="w-full py-3 pl-10 pr-4 text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:border-blue-300">
         </div>
     </div>
+
+    <!-- Admin Menu Section -->
+    <div class="mb-12 px-6">
+        <p class="text-base font-semibold text-gray-600 mb-3">Admin</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('admin.dashboard') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Dashboard</h3>
+                <p class="text-gray-500 mt-1">Halaman utama admin.</p>
+            </a>
+            <a href="{{ route('admin.users') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Pengguna</h3>
+                <p class="text-gray-500 mt-1">Kelola pengguna.</p>
+            </a>
+            <a href="{{ route('admin.roles') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Role</h3>
+                <p class="text-gray-500 mt-1">Kelola role & izin.</p>
+            </a>
+            <a href="{{ route('admin.pricing') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Harga</h3>
+                <p class="text-gray-500 mt-1">Kelola harga jual.</p>
+            </a>
+            <a href="{{ route('admin.locations') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Lokasi</h3>
+                <p class="text-gray-500 mt-1">Kelola lokasi/toko.</p>
+            </a>
+            <a href="{{ route('admin.categories') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Kategori</h3>
+                <p class="text-gray-500 mt-1">Kelola kategori produk.</p>
+            </a>
+            <a href="{{ route('admin.units') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Unit</h3>
+                <p class="text-gray-500 mt-1">Kelola satuan produk.</p>
+            </a>
+        </div>
+    </div>
+
+    @hasanyrole('Admin|Kasir')
+    <!-- Kasir Menu Section -->
+    <div class="mb-12 px-6">
+        <p class="text-base font-semibold text-gray-600 mb-3">Kasir</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('pos.kasir') }}" class="bg-blue-500 text-white p-6 rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-300">
+                <h3 class="text-xl font-bold">Buka Kasir (POS)</h3>
+                <p class="mt-1">Mulai sesi penjualan baru.</p>
+            </a>
+            <a href="{{ route('pos.cash-drawer') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Laci Kas</h3>
+                <p class="text-gray-500 mt-1">Riwayat buka/tutup kasir.</p>
+            </a>
+            <a href="{{ route('pos.stock') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Pengelolaan Stok</h3>
+                <p class="text-gray-500 mt-1">Lihat dan kelola stok.</p>
+            </a>
+            <a href="{{ route('pos.products') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Pengelolaan Produk</h3>
+                <p class="text-gray-500 mt-1">Lihat dan kelola produk.</p>
+            </a>
+            <a href="{{ route('pos.grn.index') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Penerimaan Barang</h3>
+                <p class="text-gray-500 mt-1">Catat penerimaan barang baru.</p>
+            </a>
+        </div>
+    </div>
+    @endhasanyrole
+
+    @role('Admin')
+    <!-- Koperasi Menu Section -->
+    <div class="mb-12 px-6">
+        <p class="text-base font-semibold text-gray-600 mb-3">Koperasi</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('koperasi.simpanan') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Simpanan</h3>
+                <p class="text-gray-500 mt-1">Kelola simpanan anggota.</p>
+            </a>
+            <a href="{{ route('koperasi.pinjaman') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Pinjaman</h3>
+                <p class="text-gray-500 mt-1">Kelola pinjaman anggota.</p>
+            </a>
+            <a href="{{ route('koperasi.angsuran') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Angsuran</h3>
+                <p class="text-gray-500 mt-1">Kelola angsuran pinjaman.</p>
+            </a>
+            <a href="{{ route('koperasi.cashout') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-800">Cash Out</h3>
+                <p class="text-gray-500 mt-1">Kelola penarikan tunai.</p>
+            </a>
+        </div>
+    </div>
+    @endrole
+
 </div>

@@ -30,9 +30,14 @@
                     </div>
 
                     <!-- Product Search -->
-                    <div class="mb-4 relative">
+                    <div class="mb-4">
                         <x-input-label for="product_search" value="Cari & Tambah Produk" />
-                        <x-text-input id="product_search" type="text" class="mt-1 block w-full" wire:model.live.debounce.300ms="product_search" placeholder="Ketik nama atau kode produk..." />
+                        <div class="flex items-center space-x-2 mt-1">
+                            <x-text-input id="product_search" type="text" class="block w-full" wire:model.live.debounce.300ms="product_search" placeholder="Ketik nama atau kode produk..." />
+                            <a href="{{ route('pos.products') }}" target="_blank">
+                                <x-secondary-button type="button">+ Buat Produk Baru</x-secondary-button>
+                            </a>
+                        </div>
                         @if(count($searched_products) > 0)
                             <div class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
                                 @foreach($searched_products as $product)

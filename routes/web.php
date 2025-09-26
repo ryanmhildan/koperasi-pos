@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin only routes
     Route::middleware(['role:Admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', \App\Livewire\AdminDashboard::class)->name('dashboard');
         Route::get('/users', UserManagement::class)->name('users');
         Route::get('/roles', RoleManagement::class)->name('roles');
         Route::get('/pricing', \App\Livewire\PriceManagement::class)->name('pricing');
