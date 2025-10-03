@@ -19,7 +19,6 @@ class SalesTransaction extends Model
 
     protected $casts = [
         'transaction_date' => 'date',
-        'transaction_time' => 'time',
         'sub_total' => 'decimal:2',
         'discount' => 'decimal:2',
         'total_amount' => 'decimal:2',

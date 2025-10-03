@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\CashDrawer as CashDrawerModel;
 use App\Models\Location;
+use App\Models\SalesTransaction;
 use Illuminate\Support\Facades\Auth;
 
 class CashDrawer extends Component
@@ -53,6 +54,30 @@ class CashDrawer extends Component
 
         session()->flash('success', 'Shift berhasil dibuka. Selamat bekerja!');
         return redirect()->route('pos.kasir');
+    }
+
+    public function closeShift()
+    {
+        if (!$this->activeDrawer) {
+            session()->flash('error', 'Tidak ada shift yang aktif untuk ditutup.');
+            return;
+        }
+
+        // Calculate total cash sales for the current shift
+        $totalSales = SalesTransaction::where('drawer_id', $this->activeDrawer->drawer_id)
+            ->where('payment_method', 'cash')
+            ->sum('total_amount');
+
+        $closing_balance = $this->activeDrawer->opening_balance + $totalSales;
+
+        $this->activeDrawer->update([
+            'shift_end' => now(),
+            'closing_balance' => $closing_balance,
+            'status' => 'closed',
+        ]);
+
+        session()->flash('success', 'Shift berhasil ditutup.');
+        $this->loadActiveDrawer(); // Refresh the active drawer status
     }
 
     public function render()

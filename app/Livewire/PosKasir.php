@@ -3,7 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price};
+use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price, Location};
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class PosKasir extends Component
@@ -15,22 +16,72 @@ class PosKasir extends Component
     public $cashDrawer;
     public $products;
 
-    protected $rules = [
-        'cart.*.quantity' => 'required|integer|min:1',
-    ];
+    // Properties from CashDrawer
+    public $opening_balance = 0;
+    public $location_id;
+    public $locations = [];
+
+    protected function rules()
+    {
+        return [
+            'cart.*.quantity' => 'required|integer|min:1',
+            'opening_balance' => 'required|numeric|min:0',
+            'location_id' => 'required|exists:locations,location_id',
+        ];
+    }
 
     public function mount()
     {
-        $this->cashDrawer = CashDrawer::where('user_id', auth()->id())
-            ->where('status', 'open')
-            ->latest()
-            ->first();
-            
-        if (!$this->cashDrawer) {
-            session()->flash('error', 'Silakan buka shift terlebih dahulu!');
-        }
-        
+        $this->locations = Location::where('is_active', true)->get();
         $this->loadProducts();
+    }
+
+    public function openShift()
+    {
+        $this->validate([
+            'opening_balance' => 'required|numeric|min:0',
+            'location_id' => 'required|exists:locations,location_id',
+        ]);
+
+        if ($this->cashDrawer) {
+            session()->flash('error', 'Anda sudah memiliki shift yang aktif.');
+            return;
+        }
+
+        $this->cashDrawer = CashDrawer::create([
+            'user_id' => Auth::id(),
+            'location_id' => $this->location_id,
+            'opening_balance' => $this->opening_balance,
+            'shift_date' => today(),
+            'shift_start' => now(),
+            'status' => 'open',
+        ]);
+
+        session()->flash('success', 'Shift berhasil dibuka. Selamat bekerja!');
+        $this->reset('opening_balance', 'location_id');
+    }
+
+    public function closeShift()
+    {
+        if (!$this->cashDrawer) {
+            session()->flash('error', 'Tidak ada shift yang aktif untuk ditutup.');
+            return;
+        }
+
+        $totalSales = SalesTransaction::where('drawer_id', $this->cashDrawer->drawer_id)
+            ->where('payment_method', 'cash')
+            ->sum('total_amount');
+
+        $closing_balance = $this->cashDrawer->opening_balance + $totalSales;
+
+        $this->cashDrawer->update([
+            'shift_end' => now(),
+            'closing_balance' => $closing_balance,
+            'status' => 'closed',
+        ]);
+
+        session()->flash('success', 'Shift berhasil ditutup.');
+        $this->cashDrawer = null; // Refresh the active drawer status
     }
 
     public function loadProducts()
@@ -156,6 +207,17 @@ class PosKasir extends Component
 
     public function render()
     {
+        $this->cashDrawer = CashDrawer::where('user_id', auth()->id())
+            ->where('status', 'open')
+            ->latest()
+            ->first();
+
+        // If a drawer is found but it has no location, treat it as invalid.
+        if ($this->cashDrawer && !$this->cashDrawer->location_id) {
+            $this->cashDrawer = null;
+            session()->flash('error', 'Shift Anda saat ini tidak memiliki lokasi. Harap tutup shift dan buka yang baru dengan memilih lokasi.');
+        }
+
         return view('livewire.pos-kasir');
     }
 }

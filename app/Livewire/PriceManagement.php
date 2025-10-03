@@ -14,7 +14,6 @@ class PriceManagement extends Component
     use WithPagination;
 
     public $search = '';
-    public $showPriceModal = false;
     public $selectedProduct;
 
     public $costPrices = [];
@@ -22,20 +21,26 @@ class PriceManagement extends Component
     public $locations = [];
 
     // Form fields for new/edit
+    public $costPriceId;
     public $editingCostPrice = [];
+    public $sellingPriceId;
     public $editingSellingPrice = [];
 
-    protected $rules = [
-        'editingCostPrice.location_id' => 'required',
-        'editingCostPrice.average_price' => 'required|numeric|min:0',
-        'editingSellingPrice.location_id' => 'required',
-        'editingSellingPrice.selling_price' => 'required|numeric|min:0',
-        'editingSellingPrice.discount' => 'nullable|numeric|min:0',
-    ];
+    protected function rules()
+    {
+        return [
+            'editingCostPrice.location_id' => 'required|integer',
+            'editingCostPrice.average_price' => 'required|numeric|min:0',
+            'editingSellingPrice.location_id' => 'required|integer',
+            'editingSellingPrice.selling_price' => 'required|numeric|min:0',
+            'editingSellingPrice.discount' => 'nullable|numeric|min:0|max:100',
+        ];
+    }
 
     public function mount()
     {
         $this->locations = Location::all();
+        $this->resetEditingFields();
     }
 
     public function updatingSearch()
@@ -46,61 +51,116 @@ class PriceManagement extends Component
     public function managePrices($productId)
     {
         $this->selectedProduct = Product::findOrFail($productId);
-        $this->costPrices = Price::where('product_id', $productId)->with('location')->get();
-        $this->sellingPrices = SellingPrice::where('product_id', $productId)->with('location')->get();
+        $this->refreshPrices();
         $this->resetEditingFields();
-        $this->showPriceModal = true;
+        $this->dispatch('open-modal', 'price-management-modal');
+    }
+
+    public function refreshPrices()
+    {
+        if ($this->selectedProduct) {
+            $this->costPrices = Price::where('product_id', $this->selectedProduct->product_id)->with('location')->get();
+            $this->sellingPrices = SellingPrice::where('product_id', $this->selectedProduct->product_id)->with('location')->get();
+        }
+    }
+
+    public function editCostPrice($id)
+    {
+        $this->costPriceId = $id;
+        $price = Price::findOrFail($id);
+        $this->editingCostPrice = [
+            'location_id' => $price->location_id,
+            'average_price' => $price->average_price,
+        ];
     }
 
     public function saveCostPrice()
     {
-        $this->validate(['editingCostPrice.location_id', 'editingCostPrice.average_price']);
+        $this->validate([
+            'editingCostPrice.location_id' => 'required|integer',
+            'editingCostPrice.average_price' => 'required|numeric|min:0',
+        ]);
 
         Price::updateOrCreate(
             [
+                'id' => $this->costPriceId,
                 'product_id' => $this->selectedProduct->product_id,
-                'location_id' => $this->editingCostPrice['location_id'],
             ],
             [
+                'location_id' => $this->editingCostPrice['location_id'],
                 'average_price' => $this->editingCostPrice['average_price'],
             ]
         );
 
         session()->flash('message', 'Harga pokok berhasil disimpan.');
-        $this->managePrices($this->selectedProduct->product_id); // Refresh data
+        $this->refreshPrices();
+        $this->resetEditingFields();
+    }
+    
+    public function deleteCostPrice($id)
+    {
+        Price::findOrFail($id)->delete();
+        session()->flash('message', 'Harga pokok berhasil dihapus.');
+        $this->refreshPrices();
+    }
+
+    public function editSellingPrice($id)
+    {
+        $this->sellingPriceId = $id;
+        $price = SellingPrice::findOrFail($id);
+        $this->editingSellingPrice = [
+            'location_id' => $price->location_id,
+            'selling_price' => $price->selling_price,
+            'discount' => $price->discount,
+        ];
     }
 
     public function saveSellingPrice()
     {
-        $this->validate(['editingSellingPrice.location_id', 'editingSellingPrice.selling_price', 'editingSellingPrice.discount']);
+        $this->validate([
+            'editingSellingPrice.location_id' => 'required|integer',
+            'editingSellingPrice.selling_price' => 'required|numeric|min:0',
+            'editingSellingPrice.discount' => 'nullable|numeric|min:0|max:100',
+        ]);
 
         SellingPrice::updateOrCreate(
             [
+                'id' => $this->sellingPriceId,
                 'product_id' => $this->selectedProduct->product_id,
-                'location_id' => $this->editingSellingPrice['location_id'],
             ],
             [
+                'location_id' => $this->editingSellingPrice['location_id'],
                 'selling_price' => $this->editingSellingPrice['selling_price'],
                 'discount' => $this->editingSellingPrice['discount'] ?? 0,
             ]
         );
 
         session()->flash('message', 'Harga jual berhasil disimpan.');
-        $this->managePrices($this->selectedProduct->product_id); // Refresh data
+        $this->refreshPrices();
+        $this->resetEditingFields();
+    }
+
+    public function deleteSellingPrice($id)
+    {
+        SellingPrice::findOrFail($id)->delete();
+        session()->flash('message', 'Harga jual berhasil dihapus.');
+        $this->refreshPrices();
     }
 
     public function closeModal()
     {
-        $this->showPriceModal = false;
+        $this->dispatch('close-modal', 'price-management-modal');
         $this->selectedProduct = null;
         $this->costPrices = [];
         $this->sellingPrices = [];
         $this->resetEditingFields();
     }
 
-    private function resetEditingFields()
+    public function resetEditingFields()
     {
+        $this->costPriceId = null;
         $this->editingCostPrice = ['location_id' => '', 'average_price' => ''];
+        $this->sellingPriceId = null;
         $this->editingSellingPrice = ['location_id' => '', 'selling_price' => '', 'discount' => ''];
     }
 

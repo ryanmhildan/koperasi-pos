@@ -33,8 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/kasir', PosKasir::class)->name('kasir');
         Route::get('/products', ProductManagement::class)->name('products');
         Route::get('/stock', StockManagement::class)->name('stock');
-        Route::get('/cash-drawer', \App\Livewire\CashDrawer::class)->name('cash-drawer');
-        
+
         // GRN Routes
         Route::get('/grn', \App\Livewire\GrnList::class)->name('grn.index');
         Route::get('/grn/create', \App\Livewire\GrnCreate::class)->name('grn.create');

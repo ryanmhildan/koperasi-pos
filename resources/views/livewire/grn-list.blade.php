@@ -27,7 +27,7 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $grn->grn_id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $grn->receipt_date->format('d M Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $grn->location->name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $grn->location->location_name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $grn->reference_number }}</td>
                                         {{-- <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button>Lihat</x-secondary-button>

@@ -21,7 +21,7 @@
                         <p>Shift dimulai pada: {{ $activeDrawer->shift_start->format('d M Y, H:i') }}</p>
                         <p>Saldo Awal: Rp {{ number_format($activeDrawer->opening_balance, 0, ',', '.') }}</p>
                         {{-- TODO: Add close shift functionality --}}
-                        <x-danger-button class="mt-4" disabled>Tutup Shift (Coming Soon)</x-danger-button>
+                        <x-danger-button class="mt-4" wire:click="closeShift" wire:confirm="Apakah Anda yakin ingin menutup shift ini? Semua transaksi akan difinalisasi.">Tutup Shift</x-danger-button>
                     </div>
                 @else
                     <div>

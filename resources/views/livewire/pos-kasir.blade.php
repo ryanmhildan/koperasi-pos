@@ -12,11 +12,30 @@
     @endif
 
     @if (!$cashDrawer)
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-center">
-            <h2 class="text-xl font-bold text-red-600">Shift Belum Dibuka</h2>
-            <p class="mt-2">Anda harus membuka shift kasir terlebih dahulu untuk memulai transaksi.</p>
-            {{-- TODO: Add link to cash drawer page --}}
-            {{-- <a href="{{ route('pos.cash-drawer') }}" class="mt-4 inline-block bg-blue-500 text-white font-bold py-2 px-4 rounded">Buka Shift</a> --}}
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 max-w-xl mx-auto">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Buka Shift Kasir</h2>
+            <p class="mb-4 text-center text-gray-600">Anda harus membuka shift untuk memulai transaksi.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <x-input-label for="location_id" value="Lokasi Kasir" />
+                    <select id="location_id" wire:model.defer="location_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="">Pilih Lokasi</option>
+                        @foreach($locations as $location)
+                            <option value="{{ $location->location_id }}">{{ $location->location_name }}</option>
+                        @endforeach
+                    </select>
+                    @error('location_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <x-input-label for="opening_balance" value="Saldo Awal (Uang Modal)" />
+                    <x-text-input id="opening_balance" type="number" class="mt-1 block w-full" wire:model.defer="opening_balance" placeholder="Contoh: 500000" />
+                    @error('opening_balance') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <x-primary-button wire:click="openShift" class="w-full justify-center">
+                    Buka Shift
+                </x-primary-button>
+            </div>
         </div>
     @else
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -62,6 +81,9 @@
                     <x-primary-button wire:click="processTransaction" class="w-full mt-4 justify-center" :disabled="empty($cart)">
                         Proses Transaksi
                     </x-primary-button>
+                    <x-danger-button wire:click="closeShift" wire:confirm="Apakah Anda yakin ingin menutup shift ini? Semua transaksi akan difinalisasi." class="w-full mt-2 justify-center">
+                        Tutup Shift
+                    </x-danger-button>
                 </div>
             </div>
 

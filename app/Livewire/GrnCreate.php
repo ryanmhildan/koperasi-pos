@@ -108,7 +108,7 @@ class GrnCreate extends Component
                 // --- Weighted Average Cost Calculation ---
                 $stock = Stock::firstOrCreate(
                     ['product_id' => $item['product_id'], 'location_id' => $this->location_id],
-                    ['current_stock' => 0]
+                    ['current_stock' => 0, 'last_updated' => now()]
                 );
                 $price = Price::firstOrCreate(
                     ['product_id' => $item['product_id'], 'location_id' => $this->location_id],
@@ -129,6 +129,13 @@ class GrnCreate extends Component
 
                 $price->average_price = $new_avg_price;
                 $price->save();
+
+                // Update Product's Selling Price
+                $product = Product::find($item['product_id']);
+                if ($product) {
+                    $product->selling_price = $new_avg_price;
+                    $product->save();
+                }
                 // --- End of Calculation ---
 
                 // Update Stock Level

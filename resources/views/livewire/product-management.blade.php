@@ -76,12 +76,24 @@
     </div>
 
     <!-- Create/Edit Product Modal -->
-    <x-modal :show="$showModal" name="product-form-modal" maxWidth="2xl">
+    <x-modal name="product-form-modal" maxWidth="2xl">
         <form wire:submit.prevent="save" class="p-6">
 
             <h2 class="text-lg font-medium text-gray-900">
                 {{ $editMode ? 'Edit Produk' : 'Tambah Produk' }}
             </h2>
+
+            @if ($errors->any())
+                <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Oops!</strong>
+                    <span class="block sm:inline">Ada beberapa masalah dengan input Anda.</span>
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -155,7 +167,7 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <x-secondary-button x-on:click="$dispatch('close')">
+                <x-secondary-button wire:click="closeModal" type="button">
                     Batal
                 </x-secondary-button>
 

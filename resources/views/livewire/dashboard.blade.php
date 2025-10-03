@@ -1,6 +1,6 @@
-<div class="max-w-5xl mx-auto pt-8 pb-8">
+<div class="max-w-5xl mx-auto pt-18 pb-8">
     <!-- Welcome Header (Centered) -->
-    <div class="mb-10 text-center">
+    <div class="mb-10 pt-6 text-center">
         <h1 class="text-4xl font-bold text-gray-800">Hallo, {{ auth()->user()->full_name }}!</h1>
         <p class="mt-2 text-lg text-gray-500">Selamat datang kembali.</p>
     </div>
@@ -61,10 +61,7 @@
                 <h3 class="text-xl font-bold">Buka Kasir (POS)</h3>
                 <p class="mt-1">Mulai sesi penjualan baru.</p>
             </a>
-            <a href="{{ route('pos.cash-drawer') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Laci Kas</h3>
-                <p class="text-gray-500 mt-1">Riwayat buka/tutup kasir.</p>
-            </a>
+
             <a href="{{ route('pos.stock') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
                 <h3 class="text-lg font-semibold text-gray-800">Pengelolaan Stok</h3>
                 <p class="text-gray-500 mt-1">Lihat dan kelola stok.</p>

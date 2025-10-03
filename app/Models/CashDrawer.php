@@ -12,7 +12,7 @@ class CashDrawer extends Model
     protected $primaryKey = 'drawer_id';
     
     protected $fillable = [
-        'user_id', 'opening_balance', 'closing_balance', 'total_sales',
+        'user_id', 'location_id', 'opening_balance', 'closing_balance', 'total_sales',
         'total_cash_in', 'total_cash_out', 'shift_date', 'shift_start',
         'shift_end', 'status'
     ];

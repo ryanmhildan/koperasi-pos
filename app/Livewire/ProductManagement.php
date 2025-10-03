@@ -8,12 +8,13 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Unit;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class ProductManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, AuthorizesRequests;
 
     public $search = '';
-    public $showModal = false;
     public $editMode = false;
     public $productId;
     
@@ -41,38 +42,46 @@ class ProductManagement extends Component
 
     public function create()
     {
+        $this->authorize('create products');
         $this->resetInputFields();
-        $this->showModal = true;
+        $this->dispatch('open-modal', 'product-form-modal');
     }
 
     public function store()
     {
-        $this->validate($this->rules());
+        $this->authorize('create products');
+        $validatedData = $this->validate($this->rules());
 
-        $product = new Product();
-        $product->product_code = $this->product_code;
-        $product->barcode = $this->barcode;
-        $product->product_name = $this->product_name;
-        $product->category_id = $this->category_id;
-        $product->unit_id = $this->unit_id;
-        $product->selling_price = $this->selling_price === '' ? null : $this->selling_price;
-        $product->is_stock_item = $this->is_stock_item;
-        $product->product_type = $this->product_type;
-        $product->minimum_stock = $this->minimum_stock;
-        $product->track_expiry = $this->track_expiry;
-        $product->is_active = $this->is_active;
-        
-        if ($product->save()) {
-            session()->flash('message', 'Produk berhasil ditambahkan.');
-        } else {
-            session()->flash('error', 'Gagal menyimpan produk. Silakan coba lagi.');
+        try {
+            $product = new Product();
+            $product->product_code = $this->product_code;
+            $product->barcode = $this->barcode;
+            $product->product_name = $this->product_name;
+            $product->category_id = $this->category_id;
+            $product->unit_id = $this->unit_id;
+            $product->selling_price = $this->selling_price === '' ? null : $this->selling_price;
+            $product->is_stock_item = $this->is_stock_item;
+            $product->product_type = $this->product_type;
+            $product->minimum_stock = $this->minimum_stock;
+            $product->track_expiry = $this->track_expiry;
+            $product->is_active = $this->is_active;
+            
+            if ($product->save()) {
+                session()->flash('message', 'Produk berhasil ditambahkan.');
+                $this->dispatch('close-modal', 'product-form-modal');
+                $this->resetInputFields();
+            } else {
+                session()->flash('error', 'Gagal menyimpan produk. Silakan coba lagi.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-        $this->closeModal();
     }
 
     public function edit($id)
     {
         $product = Product::findOrFail($id);
+        $this->authorize('edit products', $product);
         $this->productId = $id;
         $this->product_code = $product->product_code;
         $this->barcode = $product->barcode;
@@ -87,30 +96,24 @@ class ProductManagement extends Component
         $this->is_active = $product->is_active;
         
         $this->editMode = true;
-        $this->showModal = true;
+        $this->dispatch('open-modal', 'product-form-modal');
     }
 
     public function update()
     {
-        $this->validate($this->rules());
-
         $product = Product::findOrFail($this->productId);
-        $product->update([
-            'product_code' => $this->product_code,
-            'barcode' => $this->barcode,
-            'product_name' => $this->product_name,
-            'category_id' => $this->category_id,
-            'unit_id' => $this->unit_id,
-            'selling_price' => $this->selling_price === '' ? null : $this->selling_price,
-            'is_stock_item' => $this->is_stock_item,
-            'product_type' => $this->product_type,
-            'minimum_stock' => $this->minimum_stock,
-            'track_expiry' => $this->track_expiry,
-            'is_active' => $this->is_active,
-        ]);
+        $this->authorize('edit products', $product);
+        $validatedData = $this->validate($this->rules());
 
-        session()->flash('message', 'Produk berhasil diupdate.');
-        $this->closeModal();
+        try {
+            $product->update($validatedData);
+
+            session()->flash('message', 'Produk berhasil diupdate.');
+            $this->dispatch('close-modal', 'product-form-modal');
+            $this->resetInputFields();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
     
     public function save()
@@ -124,14 +127,16 @@ class ProductManagement extends Component
 
     public function delete($id)
     {
-        Product::find($id)->delete();
+        $product = Product::findOrFail($id);
+        $this->authorize('delete products', $product);
+        $product->delete();
         session()->flash('message', 'Produk berhasil dihapus.');
     }
 
     public function closeModal()
     {
-        $this->showModal = false;
         $this->resetInputFields();
+        $this->dispatch('close-modal', 'product-form-modal');
     }
 
     private function resetInputFields()
