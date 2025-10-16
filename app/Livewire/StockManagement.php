@@ -13,7 +13,6 @@ class StockManagement extends Component
     use WithPagination;
 
     public $search = '';
-    public $showHistoryModal = false;
     public $selectedProduct;
     public $stockMovements = [];
 
@@ -33,14 +32,16 @@ class StockManagement extends Component
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $this->showHistoryModal = true;
+        $this->dispatch('open-modal', 'stock-history-modal');
     }
 
     public function closeModal()
     {
-        $this->showHistoryModal = false;
-        $this->selectedProduct = null;
-        $this->stockMovements = [];
+        $this->reset([
+            'selectedProduct',
+            'stockMovements',
+        ]);
+        $this->dispatch('close-modal', 'stock-history-modal');
     }
 
     public function render()

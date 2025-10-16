@@ -41,13 +41,12 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div x-data="{}">
+                                            <div class="flex items-center justify-end space-x-2">
                                                 <x-secondary-button 
-                                                    wire:click="edit({{ $location->location_id }})" 
-                                                    x-on:click="$dispatch('open-modal', 'location-form-modal')"
+                                                    wire:click="edit({{ $location->location_id }})"
                                                 >Edit</x-secondary-button>
+                                                <x-danger-button wire:click="delete({{ $location->location_id }})" wire:confirm="Anda yakin ingin menghapus lokasi ini?">Hapus</x-danger-button>
                                             </div>
-                                            <x-danger-button wire:click="delete({{ $location->location_id }})" wire:confirm="Anda yakin ingin menghapus lokasi ini?">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty

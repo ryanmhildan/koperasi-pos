@@ -26,4 +26,9 @@ class SellingPrice extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class, 'location_id', 'location_id');
+    }
 }

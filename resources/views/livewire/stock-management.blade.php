@@ -26,7 +26,7 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $stock->product->product_code }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $stock->product->product_name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $stock->location->name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $stock->location->location_name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap font-bold">{{ $stock->current_stock }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $stock->last_updated ? $stock->last_updated->format('d M Y') : 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Stock History Modal -->
-    <x-modal name="stock-history-modal" :show="$showHistoryModal" maxWidth="4xl">
+    <x-modal name="stock-history-modal" maxWidth="4xl">
         <x-slot name="title">
             Riwayat Stok: {{ $selectedProduct?->product_name ?? '' }}
         </x-slot>

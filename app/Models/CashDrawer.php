@@ -33,6 +33,11 @@ class CashDrawer extends Model
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class, 'location_id', 'location_id');
+    }
+
     public function salesTransactions()
     {
         return $this->hasMany(SalesTransaction::class, 'drawer_id', 'drawer_id');

@@ -79,4 +79,19 @@ class Product extends Model
     {
         return $this->hasMany(GrnDetail::class, 'product_id', 'product_id');
     }
+
+    // Accessor for average cost price
+    public function getAverageCostPriceAttribute()
+    {
+        // We get the average of the 'average_price' column from the related prices
+        $avg = $this->prices()->avg('average_price');
+        return $avg ?? 0;
+    }
+
+    // Accessor for average selling price
+    public function getAverageSellingPriceAttribute()
+    {
+        $avg = $this->sellingPrices()->avg('selling_price');
+        return $avg ?? 0;
+    }
 }

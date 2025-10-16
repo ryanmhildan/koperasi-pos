@@ -38,11 +38,11 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        @role('Admin')
+                        @can('edit users')
                             <x-dropdown-link :href="route('admin.roles')" wire:navigate>
                                 {{ __('Kelola Role') }}
                             </x-dropdown-link>
-                        @endrole
+                        @endcan
 
                         <x-dropdown-link :href="route('profile.edit')" wire:navigate>
                             {{ __('Profile') }}

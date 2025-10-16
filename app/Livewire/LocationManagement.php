@@ -27,6 +27,7 @@ class LocationManagement extends Component
     public function create()
     {
         $this->resetInputFields();
+        $this->dispatch('open-modal', 'location-form-modal');
     }
 
     public function store()
@@ -40,7 +41,7 @@ class LocationManagement extends Component
         ]);
 
         session()->flash('message', 'Lokasi berhasil ditambahkan.');
-        $this->closeModal();
+        $this->dispatch('close-modal', 'location-form-modal');
     }
 
     public function edit($id)
@@ -51,6 +52,7 @@ class LocationManagement extends Component
         $this->address = $location->address;
         $this->is_active = $location->is_active;
         $this->editMode = true;
+        $this->dispatch('open-modal', 'location-form-modal');
     }
 
     public function update()
@@ -65,7 +67,7 @@ class LocationManagement extends Component
         ]);
 
         session()->flash('message', 'Lokasi berhasil diupdate.');
-        $this->closeModal();
+        $this->dispatch('close-modal', 'location-form-modal');
     }
 
     public function delete($id)
@@ -76,7 +78,6 @@ class LocationManagement extends Component
 
     public function closeModal()
     {
-        $this->showModal = false;
         $this->resetInputFields();
         $this->dispatch('close-modal', 'location-form-modal');
     }

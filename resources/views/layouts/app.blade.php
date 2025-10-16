@@ -19,5 +19,8 @@
     </div>
     
     @livewireScripts
+    <livewire:role-form-modal />
+    <livewire:user-form-modal />
+    <livewire:user-card-modal />
 </body>
 </html>

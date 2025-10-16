@@ -16,21 +16,20 @@ class PriceManagement extends Component
     public $search = '';
     public $selectedProduct;
 
-    public $costPrices = [];
     public $sellingPrices = [];
     public $locations = [];
 
     // Form fields for new/edit
-    public $costPriceId;
-    public $editingCostPrice = [];
     public $sellingPriceId;
     public $editingSellingPrice = [];
+
+    // Properties for delete confirmation
+    public $priceIdToDelete;
+    public $showDeleteConfirmation = false;
 
     protected function rules()
     {
         return [
-            'editingCostPrice.location_id' => 'required|integer',
-            'editingCostPrice.average_price' => 'required|numeric|min:0',
             'editingSellingPrice.location_id' => 'required|integer',
             'editingSellingPrice.selling_price' => 'required|numeric|min:0',
             'editingSellingPrice.discount' => 'nullable|numeric|min:0|max:100',
@@ -59,49 +58,8 @@ class PriceManagement extends Component
     public function refreshPrices()
     {
         if ($this->selectedProduct) {
-            $this->costPrices = Price::where('product_id', $this->selectedProduct->product_id)->with('location')->get();
             $this->sellingPrices = SellingPrice::where('product_id', $this->selectedProduct->product_id)->with('location')->get();
         }
-    }
-
-    public function editCostPrice($id)
-    {
-        $this->costPriceId = $id;
-        $price = Price::findOrFail($id);
-        $this->editingCostPrice = [
-            'location_id' => $price->location_id,
-            'average_price' => $price->average_price,
-        ];
-    }
-
-    public function saveCostPrice()
-    {
-        $this->validate([
-            'editingCostPrice.location_id' => 'required|integer',
-            'editingCostPrice.average_price' => 'required|numeric|min:0',
-        ]);
-
-        Price::updateOrCreate(
-            [
-                'id' => $this->costPriceId,
-                'product_id' => $this->selectedProduct->product_id,
-            ],
-            [
-                'location_id' => $this->editingCostPrice['location_id'],
-                'average_price' => $this->editingCostPrice['average_price'],
-            ]
-        );
-
-        session()->flash('message', 'Harga pokok berhasil disimpan.');
-        $this->refreshPrices();
-        $this->resetEditingFields();
-    }
-    
-    public function deleteCostPrice($id)
-    {
-        Price::findOrFail($id)->delete();
-        session()->flash('message', 'Harga pokok berhasil dihapus.');
-        $this->refreshPrices();
     }
 
     public function editSellingPrice($id)
@@ -113,6 +71,7 @@ class PriceManagement extends Component
             'selling_price' => $price->selling_price,
             'discount' => $price->discount,
         ];
+        $this->showDeleteConfirmation = false; // Hide delete confirmation if user edits another item
     }
 
     public function saveSellingPrice()
@@ -123,15 +82,23 @@ class PriceManagement extends Component
             'editingSellingPrice.discount' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $productId = $this->selectedProduct->product_id;
+        $locationId = $this->editingSellingPrice['location_id'];
+
+        // Find the corresponding cost price to save with the selling price
+        $costPrice = Price::where('product_id', $productId)
+                          ->where('location_id', $locationId)
+                          ->first();
+
         SellingPrice::updateOrCreate(
             [
-                'id' => $this->sellingPriceId,
-                'product_id' => $this->selectedProduct->product_id,
+                'product_id' => $productId,
+                'location_id' => $locationId,
             ],
             [
-                'location_id' => $this->editingSellingPrice['location_id'],
                 'selling_price' => $this->editingSellingPrice['selling_price'],
-                'discount' => $this->editingSellingPrice['discount'] ?? 0,
+                'discount' => empty($this->editingSellingPrice['discount']) ? 0 : $this->editingSellingPrice['discount'],
+                'average_price' => $costPrice->average_price ?? 0,
             ]
         );
 
@@ -140,28 +107,41 @@ class PriceManagement extends Component
         $this->resetEditingFields();
     }
 
-    public function deleteSellingPrice($id)
+    public function confirmDelete($id)
     {
-        SellingPrice::findOrFail($id)->delete();
+        $this->priceIdToDelete = $id;
+        $this->showDeleteConfirmation = true;
+    }
+
+    public function cancelDelete()
+    {
+        $this->priceIdToDelete = null;
+        $this->showDeleteConfirmation = false;
+    }
+
+    public function destroyConfirmedPrice()
+    {
+        SellingPrice::findOrFail($this->priceIdToDelete)->delete();
         session()->flash('message', 'Harga jual berhasil dihapus.');
         $this->refreshPrices();
+        $this->priceIdToDelete = null;
+        $this->showDeleteConfirmation = false;
     }
 
     public function closeModal()
     {
         $this->dispatch('close-modal', 'price-management-modal');
         $this->selectedProduct = null;
-        $this->costPrices = [];
         $this->sellingPrices = [];
         $this->resetEditingFields();
     }
 
     public function resetEditingFields()
     {
-        $this->costPriceId = null;
-        $this->editingCostPrice = ['location_id' => '', 'average_price' => ''];
         $this->sellingPriceId = null;
         $this->editingSellingPrice = ['location_id' => '', 'selling_price' => '', 'discount' => ''];
+        $this->showDeleteConfirmation = false;
+        $this->priceIdToDelete = null;
     }
 
     public function render()

@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price, Location};
+use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price, Location, SellingPrice};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -86,8 +86,17 @@ class PosKasir extends Component
 
     public function loadProducts()
     {
-        $this->products = Product::with(['category', 'unit', 'stocks'])
+        if (!$this->cashDrawer) {
+            $this->products = collect();
+            return;
+        }
+
+        $products = Product::with(['category', 'unit'])
             ->where('is_active', true)
+            ->whereHas('stocks', function ($query) {
+                $query->where('location_id', $this->cashDrawer->location_id)
+                      ->where('current_stock', '>', 0);
+            })
             ->when($this->search, function($q) {
                 $q->where('product_name', 'like', '%' . $this->search . '%')
                   ->orWhere('product_code', 'like', '%' . $this->search . '%')
@@ -95,19 +104,59 @@ class PosKasir extends Component
             })
             ->limit(20)
             ->get();
+
+        // Attach the location-specific price to each product for display
+        $products->each(function ($product) {
+            $product->location_selling_price = $this->getSellingPriceForProduct($product->product_id, $product->selling_price);
+        });
+
+        $this->products = $products;
+    }
+
+    private function getSellingPriceForProduct($productId, $defaultPrice)
+    {
+        if (!$this->cashDrawer) {
+            return $defaultPrice;
+        }
+
+        $sellingPrice = SellingPrice::where('product_id', $productId)
+            ->where('location_id', $this->cashDrawer->location_id)
+            ->first();
+
+        return $sellingPrice->selling_price ?? $defaultPrice;
+    }
+
+    private function checkStock($productId, $quantity)
+    {
+        $stock = Stock::where('product_id', $productId)
+                      ->where('location_id', $this->cashDrawer->location_id)
+                      ->first();
+
+        if (!$stock || $stock->current_stock < $quantity) {
+            session()->flash('error', 'Stok tidak mencukupi untuk produk ini.');
+            return false;
+        }
+
+        return true;
     }
 
     public function addToCart($productId)
     {
         $product = Product::find($productId);
+        $currentQuantityInCart = $this->cart[$productId]['quantity'] ?? 0;
+
+        if (!$this->checkStock($productId, $currentQuantityInCart + 1)) {
+            return;
+        }
         
         if (isset($this->cart[$productId])) {
             $this->cart[$productId]['quantity']++;
         } else {
+            $price = $this->getSellingPriceForProduct($product->product_id, $product->selling_price);
             $this->cart[$productId] = [
                 'product_id' => $productId,
                 'name' => $product->product_name,
-                'price' => $product->selling_price,
+                'price' => $price,
                 'quantity' => 1,
             ];
         }
@@ -125,6 +174,12 @@ class PosKasir extends Component
     {
         if ($quantity <= 0) {
             $this->removeFromCart($productId);
+            return;
+        }
+
+        if (!$this->checkStock($productId, $quantity)) {
+            // Revert the quantity in the cart to its previous value if stock is insufficient
+            $this->cart[$productId]['quantity'] = $this->cart[$productId]['quantity'];
             return;
         }
         
@@ -218,6 +273,7 @@ class PosKasir extends Component
             session()->flash('error', 'Shift Anda saat ini tidak memiliki lokasi. Harap tutup shift dan buka yang baru dengan memilih lokasi.');
         }
 
+        $this->loadProducts();
         return view('livewire.pos-kasir');
     }
 }

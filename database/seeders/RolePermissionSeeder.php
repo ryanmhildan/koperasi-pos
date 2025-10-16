@@ -5,11 +5,15 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        // Reset cached roles and permissions
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
         // Create Permissions
         $permissions = [
             // User Management
@@ -40,25 +44,21 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Create Roles
-        $admin = Role::create(['name' => 'Admin']);
-        $kasir = Role::create(['name' => 'Kasir']);
-        $anggota = Role::create(['name' => 'Anggota']);
+        // Create Roles and assign existing permissions
+        $admin = Role::firstOrCreate(['name' => 'Admin']);
+        $admin->syncPermissions(Permission::all());
 
-        // Assign permissions to Admin (all permissions)
-        $admin->givePermissionTo(Permission::all());
-
-        // Assign permissions to Kasir
-        $kasir->givePermissionTo([
+        $kasir = Role::firstOrCreate(['name' => 'Kasir']);
+        $kasir->syncPermissions([
             'access pos', 'open cash drawer', 'close cash drawer',
             'create sales', 'view sales', 'view products', 'view stock'
         ]);
 
-        // Assign permissions to Anggota
-        $anggota->givePermissionTo([
+        $anggota = Role::firstOrCreate(['name' => 'Anggota']);
+        $anggota->syncPermissions([
             'view simpanan', 'view pinjaman', 'view angsuran'
         ]);
     }

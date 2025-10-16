@@ -1,5 +1,5 @@
 
-<div class="p-4 sm:p-6 lg:p-8">
+<div class="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-2 sm:pt-3 lg:pt-4">
     @if (session()->has('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
             <span class="block sm:inline">{{ session('success') }}</span>
@@ -99,7 +99,7 @@
                                 <p class="font-bold text-sm">{{ $product->product_name }}</p>
                                 <p class="text-xs text-gray-500">{{ $product->category->name ?? '' }}</p>
                             </div>
-                            <p class="text-right font-semibold text-indigo-600 mt-2">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</p>
+                            <p class="text-right font-semibold text-indigo-600 mt-2">Rp {{ number_format($product->location_selling_price, 0, ',', '.') }}</p>
                         </div>
                     @empty
                         <p class="col-span-full text-center text-gray-500">Produk tidak ditemukan.</p>
