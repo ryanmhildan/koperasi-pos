@@ -10,6 +10,7 @@ use App\Livewire\ProductManagement;
 use App\Livewire\StockManagement;
 use App\Livewire\UserManagement;
 use App\Livewire\RoleManagement;
+use App\Livewire\ProfilePage;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -50,10 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/units', \App\Livewire\UnitManagement::class)->name('units');
     });
     
-    // Profile route from Laravel Breeze
-    Route::get('/profile', function () {
-        return view('profile.edit');
-    })->name('profile.edit');
+    // New Profile Page Route
+    Route::get('/profile', ProfilePage::class)->name('profile.edit');
 
 });
 
