@@ -55,7 +55,7 @@
     <!-- Stock History Modal -->
     <x-modal name="stock-history-modal" maxWidth="4xl">
         <x-slot name="title">
-            Riwayat Stok: {{ $selectedProduct?->product_name ?? '' }}
+            Riwayat Stok: {{ $selectedStock?->product->product_name ?? '' }}
         </x-slot>
 
         <x-slot name="content">
@@ -89,6 +89,11 @@
                     </tbody>
                 </table>
             </div>
+            @if ($stockMovements instanceof \Illuminate\Pagination\LengthAwarePaginator && $stockMovements->hasPages())
+            <div class="mt-4">
+                {{ $stockMovements->links() }}
+            </div>
+            @endif
         </x-slot>
 
         <x-slot name="footer">

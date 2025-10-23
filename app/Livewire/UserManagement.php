@@ -16,6 +16,9 @@ class UserManagement extends Component
 
     public $search = '';
 
+    public $user_id;
+    public $confirmingUserDeletion = false;
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -31,10 +34,19 @@ class UserManagement extends Component
         $this->dispatch('editUser', id: $id);
     }
 
-    public function delete($id)
+    public function confirmUserDeletion($id)
     {
-        User::find($id)->delete();
+        $this->user_id = $id;
+        $this->confirmingUserDeletion = true;
+        $this->dispatch('open-modal', 'confirm-user-deletion');
+    }
+
+    public function deleteUser()
+    {
+        User::find($this->user_id)->delete();
         session()->flash('message', 'User berhasil dihapus.');
+        $this->confirmingUserDeletion = false;
+        $this->dispatch('close-modal', 'confirm-user-deletion');
     }
 
     public function manageCard($userId)

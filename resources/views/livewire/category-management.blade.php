@@ -42,7 +42,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button wire:click="edit({{ $category->category_id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="delete({{ $category->category_id }})" wire:confirm="Anda yakin ingin menghapus kategori ini?">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmCategoryDeletion({{ $category->category_id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty
@@ -69,7 +69,7 @@
         </x-slot>
 
         <x-slot name="content">
-            <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
+            <form wire:submit.prevent="confirmCategorySave">
                 <div class="space-y-4">
                     <div>
                         <x-input-label for="category_name" value="Nama Kategori" />
@@ -96,9 +96,49 @@
                 Batal
             </x-secondary-button>
 
-            <x-primary-button class="ml-2" wire:click="{{ $editMode ? 'update' : 'store' }}">
+            <x-primary-button class="ml-2" wire:click="confirmCategorySave">
                 Simpan
             </x-primary-button>
         </x-slot>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-category-deletion" wire:model.live="confirmingCategoryDeletion">
+        <x-slot name="title">
+            Hapus Kategori
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingCategoryDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteCategory" wire:loading.attr="disabled">
+                Hapus Kategori
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <x-confirmation-modal id="confirm-category-save" wire:model.live="confirmingCategorySave">
+        <x-slot name="title">
+            Simpan Kategori
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada kategori ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingCategorySave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="{{ $editMode ? 'update' : 'store' }}" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

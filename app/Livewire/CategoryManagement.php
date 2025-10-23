@@ -16,6 +16,10 @@ class CategoryManagement extends Component
 
     public $category_name, $description, $is_active = true;
 
+    public $category_id_to_delete;
+    public $confirmingCategoryDeletion = false;
+    public $confirmingCategorySave = false;
+
     protected function rules()
     {
         return [
@@ -31,10 +35,15 @@ class CategoryManagement extends Component
         $this->dispatch('open-modal', 'category-form-modal');
     }
 
-    public function store()
+    public function confirmCategorySave()
     {
         $this->validate();
+        $this->confirmingCategorySave = true;
+        $this->dispatch('open-modal', 'confirm-category-save');
+    }
 
+    public function store()
+    {
         Category::create([
             'category_name' => $this->category_name,
             'description' => $this->description,
@@ -42,7 +51,7 @@ class CategoryManagement extends Component
         ]);
 
         session()->flash('message', 'Kategori berhasil ditambahkan.');
-        $this->closeModal();
+        $this->closeModalAndReset();
     }
 
     public function edit($id)
@@ -58,8 +67,6 @@ class CategoryManagement extends Component
 
     public function update()
     {
-        $this->validate();
-
         $category = Category::findOrFail($this->categoryId);
         $category->update([
             'category_name' => $this->category_name,
@@ -68,19 +75,36 @@ class CategoryManagement extends Component
         ]);
 
         session()->flash('message', 'Kategori berhasil diupdate.');
-        $this->closeModal();
+        $this->closeModalAndReset();
     }
 
-    public function delete($id)
+    public function confirmCategoryDeletion($id)
     {
-        Category::find($id)->delete();
+        $this->category_id_to_delete = $id;
+        $this->confirmingCategoryDeletion = true;
+        $this->dispatch('open-modal', 'confirm-category-deletion');
+    }
+
+    public function deleteCategory()
+    {
+        Category::find($this->category_id_to_delete)->delete();
         session()->flash('message', 'Kategori berhasil dihapus.');
+        $this->confirmingCategoryDeletion = false;
+        $this->dispatch('close-modal', 'confirm-category-deletion');
     }
 
     public function closeModal()
     {
         $this->dispatch('close-modal', 'category-form-modal');
         $this->resetInputFields();
+    }
+
+    private function closeModalAndReset()
+    {
+        $this->dispatch('close-modal', 'category-form-modal');
+        $this->dispatch('close-modal', 'confirm-category-save');
+        $this->resetInputFields();
+        $this->confirmingCategorySave = false;
     }
 
     private function resetInputFields()

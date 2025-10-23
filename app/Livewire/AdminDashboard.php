@@ -22,8 +22,6 @@ class AdminDashboard extends Component
             'produk_stok_menipis' => Product::whereHas('stocks', function($query) {
                 $query->whereRaw('current_stock <= minimum_stock');
             })->count(),
-            'recent_transactions' => SalesTransaction::with(['customer', 'cashier', 'cashDrawer.location'])
-                ->latest()->take(5)->get(),
         ];
 
         return view('livewire.admin-dashboard', $data)

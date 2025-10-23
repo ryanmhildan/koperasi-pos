@@ -76,7 +76,7 @@
                                             Rp {{ number_format($item['quantity'] * $item['price'], 0, ',', '.') }}
                                         </td>
                                         <td class="px-4 py-2 text-right">
-                                            <x-danger-button wire:click="removeItem({{ $productId }})">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmRemoveItem({{ $productId }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty
@@ -93,10 +93,50 @@
                         <a href="{{ route('pos.grn.index') }}">
                             <x-secondary-button>Batal</x-secondary-button>
                         </a>
-                        <x-primary-button wire:click="save" class="ml-4">Simpan GRN</x-primary-button>
+                        <x-primary-button wire:click="confirmSave" class="ml-4">Simpan GRN</x-primary-button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <x-confirmation-modal id="confirm-remove-item" wire:model.live="confirmingRemoveItem">
+        <x-slot name="title">
+            Hapus Item
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus item ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingRemoveItem', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="removeItem" wire:loading.attr="disabled">
+                Hapus
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <x-confirmation-modal id="confirm-save" wire:model.live="confirmingSave">
+        <x-slot name="title">
+            Simpan GRN
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan GRN ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="save" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

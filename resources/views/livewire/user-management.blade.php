@@ -59,7 +59,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button wire:click="manageCard({{ $user->user_id }})">Card</x-secondary-button>
                                             <x-secondary-button wire:click="edit({{ $user->user_id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="delete({{ $user->user_id }})" wire:confirm="Anda yakin ingin menghapus pengguna ini?">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmUserDeletion({{ $user->user_id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty
@@ -80,4 +80,24 @@
             </div>
         </div>
     </div>
+
+    <x-confirmation-modal id="confirm-user-deletion" wire:model.live="confirmingUserDeletion">
+        <x-slot name="title">
+            Hapus Pengguna
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingUserDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteUser" wire:loading.attr="disabled">
+                Hapus Pengguna
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

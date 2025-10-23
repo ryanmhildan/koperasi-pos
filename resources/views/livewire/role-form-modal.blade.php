@@ -5,7 +5,7 @@
                 {{ $role_id ? 'Edit Role' : 'Buat Role Baru' }}
             </h2>
 
-            <form wire:submit.prevent="store">
+            <form wire:submit.prevent="confirmRoleSave">
                 <div class="mt-4">
                     <x-input-label for="name" :value="__('Nama Role')" />
                     <x-text-input id="name" type="text" class="mt-1 block w-full" wire:model.defer="name" />
@@ -37,4 +37,24 @@
             </form>
         </div>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-role-save" wire:model.live="confirmingRoleSave">
+        <x-slot name="title">
+            Simpan Role
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada role ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingRoleSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="store" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

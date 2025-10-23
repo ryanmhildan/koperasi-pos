@@ -53,7 +53,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button wire:click="edit({{ $product->product_id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="delete({{ $product->product_id }})" wire:confirm="Anda yakin ingin menghapus produk ini?">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmProductDeletion({{ $product->product_id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty
@@ -77,7 +77,7 @@
 
     <!-- Create/Edit Product Modal -->
     <x-modal name="product-form-modal" maxWidth="2xl">
-        <form wire:submit.prevent="save" class="p-6">
+        <form wire:submit.prevent="confirmProductSave" class="p-6">
 
             <h2 class="text-lg font-medium text-gray-900">
                 {{ $editMode ? 'Edit Produk' : 'Tambah Produk' }}
@@ -177,4 +177,44 @@
             </div>
         </form>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-product-deletion" wire:model.live="confirmingProductDeletion">
+        <x-slot name="title">
+            Hapus Produk
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingProductDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteProduct" wire:loading.attr="disabled">
+                Hapus Produk
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <x-confirmation-modal id="confirm-product-save" wire:model.live="confirmingProductSave">
+        <x-slot name="title">
+            Simpan Produk
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada produk ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingProductSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="save" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

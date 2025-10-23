@@ -15,6 +15,8 @@ class RoleFormModal extends Component
     public $selectedPermissions = [];
     public $allPermissions;
 
+    public $confirmingRoleSave = false;
+
     public function mount()
     {
         $this->allPermissions = Permission::all();
@@ -37,13 +39,18 @@ class RoleFormModal extends Component
         $this->dispatch('open-modal', 'role-modal');
     }
 
-    public function store()
+    public function confirmRoleSave()
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->role_id)],
             'selectedPermissions' => 'array'
         ]);
+        $this->confirmingRoleSave = true;
+        $this->dispatch('open-modal', 'confirm-role-save');
+    }
 
+    public function store()
+    {
         $role = Role::updateOrCreate(['id' => $this->role_id], ['name' => $this->name]);
         $role->syncPermissions($this->selectedPermissions);
 
@@ -58,6 +65,7 @@ class RoleFormModal extends Component
     public function closeModal()
     {
         $this->dispatch('close-modal', 'role-modal');
+        $this->dispatch('close-modal', 'confirm-role-save');
         $this->resetInputFields();
     }
 

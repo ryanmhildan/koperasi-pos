@@ -22,5 +22,6 @@
     <livewire:role-form-modal />
     <livewire:user-form-modal />
     <livewire:user-card-modal />
+    @stack('scripts')
 </body>
 </html>

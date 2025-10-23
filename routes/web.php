@@ -10,6 +10,9 @@ use App\Livewire\ProductManagement;
 use App\Livewire\StockManagement;
 use App\Livewire\UserManagement;
 use App\Livewire\RoleManagement;
+use App\Livewire\Report\TransactionHistory;
+use App\Livewire\Report\ShiftHistory;
+use App\Livewire\MyCreditCard;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -17,6 +20,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/my-credit-card', MyCreditCard::class)->name('my-credit-card');
 
     // Koperasi Routes
     Route::prefix('koperasi')->name('koperasi.')->group(function () {
@@ -33,10 +37,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/kasir', PosKasir::class)->name('kasir');
         Route::get('/products', ProductManagement::class)->name('products');
         Route::get('/stock', StockManagement::class)->name('stock');
+        Route::get('/stock-movements', \App\Livewire\StockMovementManagement::class)->name('stock-movements');
 
         // GRN Routes
         Route::get('/grn', \App\Livewire\GrnList::class)->name('grn.index');
         Route::get('/grn/create', \App\Livewire\GrnCreate::class)->name('grn.create');
+    });
+
+    // Report Routes
+    Route::prefix('report')->name('report.')->group(function () {
+        Route::get('/transactions', TransactionHistory::class)->name('transactions');
+        Route::get('/shifts', ShiftHistory::class)->name('shifts');
     });
 
     // Admin only routes
@@ -48,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/locations', \App\Livewire\LocationManagement::class)->name('locations');
         Route::get('/categories', \App\Livewire\CategoryManagement::class)->name('categories');
         Route::get('/units', \App\Livewire\UnitManagement::class)->name('units');
+        Route::get('/credit-cards', \App\Livewire\UserCreditCardManagement::class)->name('credit-cards');
     });
     
     // Profile route from Laravel Breeze

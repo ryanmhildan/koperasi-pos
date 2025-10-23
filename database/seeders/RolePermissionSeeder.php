@@ -24,6 +24,7 @@ class RolePermissionSeeder extends Seeder
             'view pinjaman', 'create pinjaman', 'edit pinjaman', 'delete pinjaman',
             'view angsuran', 'create angsuran', 'edit angsuran', 'delete angsuran',
             'view cashout', 'create cashout', 'edit cashout', 'delete cashout',
+            'view own credit card',
             
             // Product & Inventory Management
             'view products', 'create products', 'edit products', 'delete products',
@@ -59,7 +60,7 @@ class RolePermissionSeeder extends Seeder
 
         $anggota = Role::firstOrCreate(['name' => 'Anggota']);
         $anggota->syncPermissions([
-            'view simpanan', 'view pinjaman', 'view angsuran'
+            'view simpanan', 'view pinjaman', 'view angsuran', 'view own credit card'
         ]);
     }
 }

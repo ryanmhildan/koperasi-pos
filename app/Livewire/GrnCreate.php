@@ -30,6 +30,10 @@ class GrnCreate extends Component
 
     public $locations = [];
 
+    public $item_to_remove;
+    public $confirmingRemoveItem = false;
+    public $confirmingSave = false;
+
     protected $rules = [
         'location_id' => 'required|exists:locations,location_id',
         'receipt_date' => 'required|date',
@@ -78,15 +82,29 @@ class GrnCreate extends Component
         $this->searched_products = [];
     }
 
-    public function removeItem($productId)
+    public function confirmRemoveItem($productId)
     {
-        unset($this->items[$productId]);
+        $this->item_to_remove = $productId;
+        $this->confirmingRemoveItem = true;
+        $this->dispatch('open-modal', 'confirm-remove-item');
+    }
+
+    public function removeItem()
+    {
+        unset($this->items[$this->item_to_remove]);
+        $this->confirmingRemoveItem = false;
+        $this->dispatch('close-modal', 'confirm-remove-item');
+    }
+
+    public function confirmSave()
+    {
+        $this->validate();
+        $this->confirmingSave = true;
+        $this->dispatch('open-modal', 'confirm-save');
     }
 
     public function save()
     {
-        $this->validate();
-
         DB::transaction(function () {
             // Create GRN Header
             $grn = GoodReceiptNote::create([

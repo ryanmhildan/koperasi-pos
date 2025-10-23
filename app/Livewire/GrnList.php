@@ -26,7 +26,7 @@ class GrnList extends Component
 
     public function render()
     {
-        $grns = GoodReceiptNote::with('location')->latest()->paginate(15);
+        $grns = GoodReceiptNote::with('location')->latest()->paginate(10);
         return view('livewire.grn-list', ['grns' => $grns]);
     }
 }

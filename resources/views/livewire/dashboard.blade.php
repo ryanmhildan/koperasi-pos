@@ -2,7 +2,7 @@
     <!-- Welcome Header (Centered) -->
     <div class="mb-10 pt-6 text-center">
         <h1 class="text-4xl font-bold text-gray-800">Hallo, {{ auth()->user()->full_name }}!</h1>
-        <p class="mt-2 text-lg text-gray-500">Selamat datang kembali.</p>
+        <p class="mt-2 text-lg text-gray-500">Selamat datang kembali. @if($role) Anda login sebagai <strong>{{ $role }}</strong>@endif</p>
     </div>
 
     <!-- Search Bar Placeholder (Centered) -->
@@ -17,118 +17,58 @@
         </div>
     </div>
 
-    @role('Admin')
+    @if(auth()->user()->hasRole('Admin'))
     <!-- Admin Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Admin</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <a href="{{ route('admin.dashboard') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Dashboard</h3>
-                <p class="text-gray-500 mt-1">Halaman utama admin.</p>
-            </a>
-            @can('view users')
-            <a href="{{ route('admin.users') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Pengguna</h3>
-                <p class="text-gray-500 mt-1">Kelola pengguna.</p>
-            </a>
-            @endcan
-            @can('edit users')
-            <a href="{{ route('admin.roles') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Role</h3>
-                <p class="text-gray-500 mt-1">Kelola role & izin.</p>
-            </a>
-            @endcan
-            @can('edit products')
-            <a href="{{ route('admin.pricing') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Harga</h3>
-                <p class="text-gray-500 mt-1">Kelola harga jual.</p>
-            </a>
-            @endcan
-            @can('view locations')
-            <a href="{{ route('admin.locations') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Lokasi</h3>
-                <p class="text-gray-500 mt-1">Kelola lokasi/toko.</p>
-            </a>
-            @endcan
-            @can('view categories')
-            <a href="{{ route('admin.categories') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Kategori</h3>
-                <p class="text-gray-500 mt-1">Kelola kategori produk.</p>
-            </a>
-            @endcan
-            @can('view units')
-            <a href="{{ route('admin.units') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Unit</h3>
-                <p class="text-gray-500 mt-1">Kelola satuan produk.</p>
-            </a>
-            @endcan
+            @foreach ($adminMenu as $item)
+                @can($item['permission'])
+                    <a href="{{ route($item['route']) }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ $item['label'] }}</h3>
+                        <p class="text-gray-500 mt-1">{{ $item['description'] }}</p>
+                    </a>
+                @endcan
+            @endforeach
         </div>
     </div>
-    @endrole
+    @endif
 
-    @canany(['access pos', 'view stock', 'view products', 'view grn'])
     <!-- Kasir Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Kasir</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @can('access pos')
-            <a href="{{ route('pos.kasir') }}" class="bg-blue-500 text-white p-6 rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-300">
-                <h3 class="text-xl font-bold">Buka Kasir (POS)</h3>
-                <p class="mt-1">Mulai sesi penjualan baru.</p>
-            </a>
-            @endcan
-            @can('view stock')
-            <a href="{{ route('pos.stock') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Pengelolaan Stok</h3>
-                <p class="text-gray-500 mt-1">Lihat dan kelola stok.</p>
-            </a>
-            @endcan
-            @can('view products')
-            <a href="{{ route('pos.products') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Pengelolaan Produk</h3>
-                <p class="text-gray-500 mt-1">Lihat dan kelola produk.</p>
-            </a>
-            @endcan
-            @can('view grn')
-            <a href="{{ route('pos.grn.index') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Penerimaan Barang</h3>
-                <p class="text-gray-500 mt-1">Catat penerimaan barang baru.</p>
-            </a>
-            @endcan
+            @foreach ($kasirMenu as $item)
+                @can($item['permission'])
+                    @if($item['featured'] ?? false)
+                        <a href="{{ route($item['route']) }}" class="bg-blue-500 text-white p-6 rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-300">
+                            <h3 class="text-xl font-bold">{{ $item['label'] }}</h3>
+                            <p class="mt-1">{{ $item['description'] }}</p>
+                        </a>
+                    @else
+                        <a href="{{ route($item['route']) }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <h3 class="text-lg font-semibold text-gray-800">{{ $item['label'] }}</h3>
+                            <p class="text-gray-500 mt-1">{{ $item['description'] }}</p>
+                        </a>
+                    @endif
+                @endcan
+            @endforeach
         </div>
     </div>
-    @endcanany
 
-    @canany(['view simpanan', 'view pinjaman', 'view angsuran', 'view cashout'])
     <!-- Koperasi Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Koperasi</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @can('view simpanan')
-            <a href="{{ route('koperasi.simpanan') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Simpanan</h3>
-                <p class="text-gray-500 mt-1">Kelola simpanan anggota.</p>
-            </a>
-            @endcan
-            @can('view pinjaman')
-            <a href="{{ route('koperasi.pinjaman') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Pinjaman</h3>
-                <p class="text-gray-500 mt-1">Kelola pinjaman anggota.</p>
-            </a>
-            @endcan
-            @can('view angsuran')
-            <a href="{{ route('koperasi.angsuran') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Angsuran</h3>
-                <p class="text-gray-500 mt-1">Kelola angsuran pinjaman.</p>
-            </a>
-            @endcan
-            @can('view cashout')
-            <a href="{{ route('koperasi.cashout') }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <h3 class="text-lg font-semibold text-gray-800">Cash Out</h3>
-                <p class="text-gray-500 mt-1">Kelola penarikan tunai.</p>
-            </a>
-            @endcan
+            @foreach ($koperasiMenu as $item)
+                @can($item['permission'])
+                    <a href="{{ route($item['route']) }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ $item['label'] }}</h3>
+                        <p class="text-gray-500 mt-1">{{ $item['description'] }}</p>
+                    </a>
+                @endcan
+            @endforeach
         </div>
     </div>
-    @endcanany
+
 </div>

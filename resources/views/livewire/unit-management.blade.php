@@ -34,7 +34,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $unit->description }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button wire:click="edit({{ $unit->unit_id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="delete({{ $unit->unit_id }})" wire:confirm="Anda yakin ingin menghapus unit ini?">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmUnitDeletion({{ $unit->unit_id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty
@@ -61,7 +61,7 @@
         </x-slot>
 
         <x-slot name="content">
-            <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
+            <form wire:submit.prevent="confirmUnitSave">
                 <div class="space-y-4">
                     <div>
                         <x-input-label for="unit_name" value="Nama Unit" />
@@ -82,9 +82,49 @@
                 Batal
             </x-secondary-button>
 
-            <x-primary-button class="ml-2" wire:click="{{ $editMode ? 'update' : 'store' }}">
+            <x-primary-button class="ml-2" wire:click="confirmUnitSave">
                 Simpan
             </x-primary-button>
         </x-slot>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-unit-deletion" wire:model.live="confirmingUnitDeletion">
+        <x-slot name="title">
+            Hapus Unit
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus unit ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingUnitDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteUnit" wire:loading.attr="disabled">
+                Hapus Unit
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <x-confirmation-modal id="confirm-unit-save" wire:model.live="confirmingUnitSave">
+        <x-slot name="title">
+            Simpan Unit
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada unit ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingUnitSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="{{ $editMode ? 'update' : 'store' }}" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

@@ -15,6 +15,10 @@ class LocationManagement extends Component
 
     public $location_name, $address, $is_active = true;
 
+    public $location_id_to_delete;
+    public $confirmingLocationDeletion = false;
+    public $confirmingLocationSave = false;
+
     protected function rules()
     {
         return [
@@ -30,10 +34,15 @@ class LocationManagement extends Component
         $this->dispatch('open-modal', 'location-form-modal');
     }
 
-    public function store()
+    public function confirmLocationSave()
     {
         $this->validate();
+        $this->confirmingLocationSave = true;
+        $this->dispatch('open-modal', 'confirm-location-save');
+    }
 
+    public function store()
+    {
         Location::create([
             'location_name' => $this->location_name,
             'address' => $this->address,
@@ -41,7 +50,7 @@ class LocationManagement extends Component
         ]);
 
         session()->flash('message', 'Lokasi berhasil ditambahkan.');
-        $this->dispatch('close-modal', 'location-form-modal');
+        $this->closeModalAndReset();
     }
 
     public function edit($id)
@@ -57,8 +66,6 @@ class LocationManagement extends Component
 
     public function update()
     {
-        $this->validate();
-
         $location = Location::findOrFail($this->locationId);
         $location->update([
             'location_name' => $this->location_name,
@@ -67,19 +74,36 @@ class LocationManagement extends Component
         ]);
 
         session()->flash('message', 'Lokasi berhasil diupdate.');
-        $this->dispatch('close-modal', 'location-form-modal');
+        $this->closeModalAndReset();
     }
 
-    public function delete($id)
+    public function confirmLocationDeletion($id)
     {
-        Location::find($id)->delete();
+        $this->location_id_to_delete = $id;
+        $this->confirmingLocationDeletion = true;
+        $this->dispatch('open-modal', 'confirm-location-deletion');
+    }
+
+    public function deleteLocation()
+    {
+        Location::find($this->location_id_to_delete)->delete();
         session()->flash('message', 'Lokasi berhasil dihapus.');
+        $this->confirmingLocationDeletion = false;
+        $this->dispatch('close-modal', 'confirm-location-deletion');
     }
 
     public function closeModal()
     {
         $this->resetInputFields();
         $this->dispatch('close-modal', 'location-form-modal');
+    }
+
+    private function closeModalAndReset()
+    {
+        $this->dispatch('close-modal', 'location-form-modal');
+        $this->dispatch('close-modal', 'confirm-location-save');
+        $this->resetInputFields();
+        $this->confirmingLocationSave = false;
     }
 
     private function resetInputFields()

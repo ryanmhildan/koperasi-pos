@@ -12,9 +12,10 @@ class StockManagement extends Component
 {
     use WithPagination;
 
+
     public $search = '';
-    public $selectedProduct;
-    public $stockMovements = [];
+    public $selectedStock;
+    public $viewingStockId;
 
     public function updatingSearch()
     {
@@ -23,24 +24,16 @@ class StockManagement extends Component
 
     public function viewHistory($stockId)
     {
-        $stock = Stock::with(['product', 'location'])->findOrFail($stockId);
-        $this->selectedProduct = $stock->product;
-
-        $this->stockMovements = StockMovement::where('product_id', $stock->product_id)
-            ->where('location_id', $stock->location_id)
-            ->orderBy('movement_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+        $this->viewingStockId = $stockId;
+        $this->selectedStock = Stock::with(['product', 'location'])->findOrFail($stockId);
+        $this->resetPage('movementsPage');
         $this->dispatch('open-modal', 'stock-history-modal');
     }
 
     public function closeModal()
     {
-        $this->reset([
-            'selectedProduct',
-            'stockMovements',
-        ]);
+        $this->viewingStockId = null;
+        $this->selectedStock = null;
         $this->dispatch('close-modal', 'stock-history-modal');
     }
 
@@ -51,10 +44,20 @@ class StockManagement extends Component
                 $query->where('product_name', 'like', '%' . $this->search . '%')
                       ->orWhere('product_code', 'like', '%' . $this->search . '%');
             })
-            ->paginate(15);
+            ->paginate(10);
+
+        $stockMovements = [];
+        if ($this->viewingStockId) {
+            $stockMovements = StockMovement::where('product_id', $this->selectedStock->product_id)
+                ->where('location_id', $this->selectedStock->location_id)
+                ->orderBy('movement_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(10, ['*'], 'movementsPage');
+        }
 
         return view('livewire.stock-management', [
             'stocks' => $stocks,
+            'stockMovements' => $stockMovements,
         ]);
     }
 }

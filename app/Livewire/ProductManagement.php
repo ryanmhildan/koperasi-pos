@@ -22,6 +22,10 @@ class ProductManagement extends Component
     public $selling_price, $is_stock_item = true, $product_type = 'retail';
     public $minimum_stock = 0, $track_expiry = false, $is_active = true;
 
+    public $product_id_to_delete;
+    public $confirmingProductDeletion = false;
+    public $confirmingProductSave = false;
+
     protected function rules()
     {
         return [
@@ -47,10 +51,16 @@ class ProductManagement extends Component
         $this->dispatch('open-modal', 'product-form-modal');
     }
 
+    public function confirmProductSave()
+    {
+        $this->validate($this->rules());
+        $this->confirmingProductSave = true;
+        $this->dispatch('open-modal', 'confirm-product-save');
+    }
+
     public function store()
     {
         $this->authorize('create products');
-        $validatedData = $this->validate($this->rules());
 
         try {
             $product = new Product();
@@ -68,8 +78,7 @@ class ProductManagement extends Component
             
             if ($product->save()) {
                 session()->flash('message', 'Produk berhasil ditambahkan.');
-                $this->dispatch('close-modal', 'product-form-modal');
-                $this->resetInputFields();
+                $this->closeModalAndReset();
             } else {
                 session()->flash('error', 'Gagal menyimpan produk. Silakan coba lagi.');
             }
@@ -109,8 +118,7 @@ class ProductManagement extends Component
             $product->update($validatedData);
 
             session()->flash('message', 'Produk berhasil diupdate.');
-            $this->dispatch('close-modal', 'product-form-modal');
-            $this->resetInputFields();
+            $this->closeModalAndReset();
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -125,18 +133,35 @@ class ProductManagement extends Component
         }
     }
 
-    public function delete($id)
+    public function confirmProductDeletion($id)
     {
-        $product = Product::findOrFail($id);
+        $this->product_id_to_delete = $id;
+        $this->confirmingProductDeletion = true;
+        $this->dispatch('open-modal', 'confirm-product-deletion');
+    }
+
+    public function deleteProduct()
+    {
+        $product = Product::findOrFail($this->product_id_to_delete);
         $this->authorize('delete products', $product);
         $product->delete();
         session()->flash('message', 'Produk berhasil dihapus.');
+        $this->confirmingProductDeletion = false;
+        $this->dispatch('close-modal', 'confirm-product-deletion');
     }
 
     public function closeModal()
     {
         $this->resetInputFields();
         $this->dispatch('close-modal', 'product-form-modal');
+    }
+
+    private function closeModalAndReset()
+    {
+        $this->dispatch('close-modal', 'product-form-modal');
+        $this->dispatch('close-modal', 'confirm-product-save');
+        $this->resetInputFields();
+        $this->confirmingProductSave = false;
     }
 
     private function resetInputFields()

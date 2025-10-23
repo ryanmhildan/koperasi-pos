@@ -45,7 +45,7 @@
                                                 <x-secondary-button 
                                                     wire:click="edit({{ $location->location_id }})"
                                                 >Edit</x-secondary-button>
-                                                <x-danger-button wire:click="delete({{ $location->location_id }})" wire:confirm="Anda yakin ingin menghapus lokasi ini?">Hapus</x-danger-button>
+                                                <x-danger-button wire:click="confirmLocationDeletion({{ $location->location_id }})">Hapus</x-danger-button>
                                             </div>
                                         </td>
                                     </tr>
@@ -73,7 +73,7 @@
         </x-slot>
 
         <x-slot name="content">
-            <form id="location-form" wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
+            <form id="location-form" wire:submit.prevent="confirmLocationSave">
                 <div class="space-y-4">
                     <div>
                         <x-input-label for="location_name" value="Nama Lokasi" />
@@ -105,4 +105,44 @@
             </x-primary-button>
         </x-slot>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-location-deletion" wire:model.live="confirmingLocationDeletion">
+        <x-slot name="title">
+            Hapus Lokasi
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus lokasi ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingLocationDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteLocation" wire:loading.attr="disabled">
+                Hapus Lokasi
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
+    <x-confirmation-modal id="confirm-location-save" wire:model.live="confirmingLocationSave">
+        <x-slot name="title">
+            Simpan Lokasi
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada lokasi ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingLocationSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="{{ $editMode ? 'update' : 'store' }}" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

@@ -16,6 +16,10 @@ class UnitManagement extends Component
 
     public $unit_name, $description;
 
+    public $unit_id_to_delete;
+    public $confirmingUnitDeletion = false;
+    public $confirmingUnitSave = false;
+
     protected function rules()
     {
         return [
@@ -30,17 +34,22 @@ class UnitManagement extends Component
         $this->dispatch('open-modal', 'unit-form-modal');
     }
 
-    public function store()
+    public function confirmUnitSave()
     {
         $this->validate();
+        $this->confirmingUnitSave = true;
+        $this->dispatch('open-modal', 'confirm-unit-save');
+    }
 
+    public function store()
+    {
         Unit::create([
             'unit_name' => $this->unit_name,
             'description' => $this->description,
         ]);
 
         session()->flash('message', 'Unit berhasil ditambahkan.');
-        $this->closeModal();
+        $this->closeModalAndReset();
     }
 
     public function edit($id)
@@ -55,8 +64,6 @@ class UnitManagement extends Component
 
     public function update()
     {
-        $this->validate();
-
         $unit = Unit::findOrFail($this->unitId);
         $unit->update([
             'unit_name' => $this->unit_name,
@@ -64,19 +71,36 @@ class UnitManagement extends Component
         ]);
 
         session()->flash('message', 'Unit berhasil diupdate.');
-        $this->closeModal();
+        $this->closeModalAndReset();
     }
 
-    public function delete($id)
+    public function confirmUnitDeletion($id)
     {
-        Unit::find($id)->delete();
+        $this->unit_id_to_delete = $id;
+        $this->confirmingUnitDeletion = true;
+        $this->dispatch('open-modal', 'confirm-unit-deletion');
+    }
+
+    public function deleteUnit()
+    {
+        Unit::find($this->unit_id_to_delete)->delete();
         session()->flash('message', 'Unit berhasil dihapus.');
+        $this->confirmingUnitDeletion = false;
+        $this->dispatch('close-modal', 'confirm-unit-deletion');
     }
 
     public function closeModal()
     {
         $this->dispatch('close-modal', 'unit-form-modal');
         $this->resetInputFields();
+    }
+
+    private function closeModalAndReset()
+    {
+        $this->dispatch('close-modal', 'unit-form-modal');
+        $this->dispatch('close-modal', 'confirm-unit-save');
+        $this->resetInputFields();
+        $this->confirmingUnitSave = false;
     }
 
     private function resetInputFields()

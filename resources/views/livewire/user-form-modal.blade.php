@@ -5,7 +5,7 @@
                 {{ $editMode ? 'Edit Pengguna' : 'Tambah Pengguna' }}
             </h2>
 
-            <form wire:submit.prevent="save">
+            <form wire:submit.prevent="confirmUserSave">
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <x-input-label for="nrp" value="NRP" />
@@ -80,4 +80,24 @@
             </form>
         </div>
     </x-modal>
+
+    <x-confirmation-modal id="confirm-user-save" wire:model.live="confirmingUserSave">
+        <x-slot name="title">
+            Simpan Pengguna
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menyimpan perubahan pada pengguna ini?
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingUserSave', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-primary-button class="ml-3" wire:click="save" wire:loading.attr="disabled">
+                Simpan
+            </x-primary-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

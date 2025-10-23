@@ -19,6 +19,8 @@ class UserFormModal extends Component
     public $selectedRoles = [];
     public $allRoles;
 
+    public $confirmingUserSave = false;
+
     public function mount()
     {
         $this->allRoles = Role::all();
@@ -71,10 +73,15 @@ class UserFormModal extends Component
         $this->dispatch('open-modal', 'user-form-modal');
     }
 
-    public function save()
+    public function confirmUserSave()
     {
         $this->validate($this->rules());
+        $this->confirmingUserSave = true;
+        $this->dispatch('open-modal', 'confirm-user-save');
+    }
 
+    public function save()
+    {
         $updateData = [
             'nrp' => $this->nrp,
             'username' => $this->username,
@@ -100,6 +107,7 @@ class UserFormModal extends Component
     public function closeModal()
     {
         $this->dispatch('close-modal', 'user-form-modal');
+        $this->dispatch('close-modal', 'confirm-user-save');
         $this->resetInputFields();
     }
 

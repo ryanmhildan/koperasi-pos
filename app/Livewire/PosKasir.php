@@ -12,9 +12,18 @@ class PosKasir extends Component
     public $search = '';
     public $cart = [];
     public $total = 0;
-    public $paymentMethod = 'cash';
+    public $cashReceived = 0;
+    public $change = 0;
     public $cashDrawer;
     public $products;
+    public $customer_search = '';
+    public $searched_customers = [];
+    public $selected_customer = null;
+    public $customer_credit_info = null;
+
+    public $confirmingTransaction = false;
+    public $transactionType = '';
+    public $confirmingCloseShift = false;
 
     // Properties from CashDrawer
     public $opening_balance = 0;
@@ -33,8 +42,47 @@ class PosKasir extends Component
     public function mount()
     {
         $this->locations = Location::where('is_active', true)->get();
-        $this->loadProducts();
     }
+
+    public function updatedCustomerSearch($value)
+    {
+        if (strlen($value) < 2) {
+            $this->searched_customers = [];
+            return;
+        }
+
+        $this->searched_customers = \App\Models\User::where(function ($query) use ($value) {
+            $query->where('full_name', 'like', '%'.$value.'%')
+                  ->orWhere('nrp', 'like', '%'.$value.'%');
+        })
+        ->whereHas('roles', function ($q) {
+            $q->where('name', 'Anggota');
+        })
+        ->limit(5)
+        ->get();
+    }
+
+    public function selectCustomer($userId)
+    {
+        $this->selected_customer = \App\Models\User::with('creditCards')->find($userId);
+        $this->customer_search = '';
+        $this->searched_customers = [];
+
+        $card = $this->selected_customer->creditCards->where('is_active', true)->first();
+        if ($card) {
+            $availableCredit = $card->credit_limit - $card->current_balance;
+            $this->customer_credit_info = 'Sisa Limit: Rp ' . number_format($availableCredit, 0, ',', '.');
+        } else {
+            $this->customer_credit_info = 'Tidak ada kartu kredit aktif.';
+        }
+    }
+
+    public function clearCustomer()
+    {
+        $this->selected_customer = null;
+        $this->customer_credit_info = null;
+    }
+
 
     public function openShift()
     {
@@ -59,6 +107,13 @@ class PosKasir extends Component
 
         session()->flash('success', 'Shift berhasil dibuka. Selamat bekerja!');
         $this->reset('opening_balance', 'location_id');
+        $this->loadProducts();
+    }
+
+    public function confirmCloseShift()
+    {
+        $this->confirmingCloseShift = true;
+        $this->dispatch('open-modal', 'confirm-close-shift');
     }
 
     public function closeShift()
@@ -82,12 +137,13 @@ class PosKasir extends Component
 
         session()->flash('success', 'Shift berhasil ditutup.');
         $this->cashDrawer = null; // Refresh the active drawer status
+        $this->confirmingCloseShift = false;
+        $this->dispatch('close-modal', 'confirm-close-shift');
     }
 
     public function loadProducts()
     {
         if (!$this->cashDrawer) {
-            $this->products = collect();
             return;
         }
 
@@ -105,12 +161,17 @@ class PosKasir extends Component
             ->limit(20)
             ->get();
 
-        // Attach the location-specific price to each product for display
-        $products->each(function ($product) {
-            $product->location_selling_price = $this->getSellingPriceForProduct($product->product_id, $product->selling_price);
-        });
-
-        $this->products = $products;
+        // Convert the Eloquent collection to a plain array to prevent hydration issues
+        $this->products = $products->map(function ($product) {
+            return [
+                'product_id' => $product->product_id,
+                'product_name' => $product->product_name,
+                'category_name' => $product->category->name ?? '',
+                'location_selling_price' => $this->getSellingPriceForProduct($product->product_id, $product->selling_price),
+                'barcode' => $product->barcode, // Ensure barcode is included for keyboard navigation
+                'product_code' => $product->product_code, // Ensure product_code is included
+            ];
+        })->toArray();
     }
 
     private function getSellingPriceForProduct($productId, $defaultPrice)
@@ -140,7 +201,7 @@ class PosKasir extends Component
         return true;
     }
 
-    public function addToCart($productId)
+    public function addToCart($productId, $price = null)
     {
         $product = Product::find($productId);
         $currentQuantityInCart = $this->cart[$productId]['quantity'] ?? 0;
@@ -148,43 +209,46 @@ class PosKasir extends Component
         if (!$this->checkStock($productId, $currentQuantityInCart + 1)) {
             return;
         }
-        
+
         if (isset($this->cart[$productId])) {
             $this->cart[$productId]['quantity']++;
         } else {
-            $price = $this->getSellingPriceForProduct($product->product_id, $product->selling_price);
+            // If price is not passed, fetch it as a fallback for safety.
+            $finalPrice = $price ?? $this->getSellingPriceForProduct($product->product_id, $product->selling_price);
             $this->cart[$productId] = [
                 'product_id' => $productId,
                 'name' => $product->product_name,
-                'price' => $price,
+                'price' => $finalPrice,
                 'quantity' => 1,
             ];
         }
-        
+
         $this->calculateTotal();
     }
 
-    public function removeFromCart($productId)
+    public function increaseQuantity($productId)
     {
-        unset($this->cart[$productId]);
-        $this->calculateTotal();
+        if (isset($this->cart[$productId])) {
+            $newQuantity = $this->cart[$productId]['quantity'] + 1;
+            
+            if (!$this->checkStock($productId, $newQuantity)) {
+                return;
+            }
+            
+            $this->cart[$productId]['quantity'] = $newQuantity;
+            $this->calculateTotal();
+        }
     }
 
-    public function updateQuantity($productId, $quantity)
+    public function decreaseQuantity($productId)
     {
-        if ($quantity <= 0) {
-            $this->removeFromCart($productId);
-            return;
+        if (isset($this->cart[$productId])) {
+            $this->cart[$productId]['quantity']--;
+            if ($this->cart[$productId]['quantity'] <= 0) {
+                unset($this->cart[$productId]);
+            }
+            $this->calculateTotal();
         }
-
-        if (!$this->checkStock($productId, $quantity)) {
-            // Revert the quantity in the cart to its previous value if stock is insufficient
-            $this->cart[$productId]['quantity'] = $this->cart[$productId]['quantity'];
-            return;
-        }
-        
-        $this->cart[$productId]['quantity'] = $quantity;
-        $this->calculateTotal();
     }
 
     public function calculateTotal()
@@ -192,6 +256,29 @@ class PosKasir extends Component
         $this->total = collect($this->cart)->sum(function($item) {
             return $item['price'] * $item['quantity'];
         });
+        $this->calculateChange();
+    }
+
+    public function updatedCashReceived($value)
+    {
+        $this->calculateChange();
+    }
+
+    public function calculateChange()
+    {
+        $cash = floatval($this->cashReceived);
+        if ($cash > 0) {
+            $this->change = $cash - $this->total;
+        } else {
+            $this->change = 0;
+        }
+    }
+
+    public function confirmTransaction($type)
+    {
+        $this->transactionType = $type;
+        $this->confirmingTransaction = true;
+        $this->dispatch('open-modal', 'confirm-transaction');
     }
 
     public function processTransaction()
@@ -206,9 +293,30 @@ class PosKasir extends Component
             return;
         }
 
+        // Credit Card specific logic
+        if ($this->transactionType === 'credit_card') {
+            if (!$this->selected_customer) {
+                session()->flash('error', 'Pilih pelanggan untuk transaksi kartu kredit.');
+                return;
+            }
+
+            $card = $this->selected_customer->creditCards->where('is_active', true)->first();
+
+            if (!$card) {
+                session()->flash('error', 'Pelanggan tidak memiliki kartu kredit yang aktif.');
+                return;
+            }
+
+            $availableCredit = $card->credit_limit - $card->current_balance;
+            if ($this->total > $availableCredit) {
+                session()->flash('error', 'Limit kredit pelanggan tidak mencukupi. Sisa limit: Rp ' . number_format($availableCredit, 0, ',', '.'));
+                return;
+            }
+        }
+
         $transaction = SalesTransaction::create([
             'transaction_number' => 'TRX-' . date('Ymd') . '-' . Str::random(6),
-            'user_id' => auth()->id(),
+            'user_id' => $this->selected_customer->user_id ?? auth()->id(), // Use selected customer if available
             'cashier_id' => auth()->id(),
             'drawer_id' => $this->cashDrawer->drawer_id,
             'transaction_date' => today(),
@@ -216,7 +324,7 @@ class PosKasir extends Component
             'sub_total' => $this->total,
             'discount' => 0,
             'total_amount' => $this->total,
-            'payment_method' => $this->paymentMethod,
+            'payment_method' => $this->transactionType,
             'status' => 'completed',
         ]);
 
@@ -244,13 +352,19 @@ class PosKasir extends Component
             }
         }
 
-        // Update cash drawer
-        $this->cashDrawer->increment('total_sales', $this->total);
+        // Update cash drawer only for cash transactions
+        if ($this->transactionType === 'cash') {
+            $this->cashDrawer->increment('total_sales', $this->total);
+        } elseif ($this->transactionType === 'credit_card' && isset($card)) {
+            $card->increment('current_balance', $this->total);
+        }
 
-        $this->reset(['cart', 'total', 'search']);
+        $this->reset(['cart', 'total', 'search', 'cashReceived', 'change', 'selected_customer']);
         $this->loadProducts();
         
         session()->flash('success', 'Transaksi berhasil! No: ' . $transaction->transaction_number);
+        $this->confirmingTransaction = false;
+        $this->dispatch('close-modal', 'confirm-transaction');
     }
 
     public function updated($propertyName)
@@ -273,7 +387,10 @@ class PosKasir extends Component
             session()->flash('error', 'Shift Anda saat ini tidak memiliki lokasi. Harap tutup shift dan buka yang baru dengan memilih lokasi.');
         }
 
-        $this->loadProducts();
+        if ($this->products === null && $this->cashDrawer) {
+            $this->loadProducts();
+        }
+
         return view('livewire.pos-kasir');
     }
 }

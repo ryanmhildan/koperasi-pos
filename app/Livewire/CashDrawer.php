@@ -15,6 +15,8 @@ class CashDrawer extends Component
     public $location_id;
     public $locations = [];
 
+    public $confirmingCloseShift = false;
+
     protected $rules = [
         'opening_balance' => 'required|numeric|min:0',
         'location_id' => 'required|exists:locations,location_id',
@@ -56,6 +58,12 @@ class CashDrawer extends Component
         return redirect()->route('pos.kasir');
     }
 
+    public function confirmCloseShift()
+    {
+        $this->confirmingCloseShift = true;
+        $this->dispatch('open-modal', 'confirm-close-shift');
+    }
+
     public function closeShift()
     {
         if (!$this->activeDrawer) {
@@ -78,6 +86,8 @@ class CashDrawer extends Component
 
         session()->flash('success', 'Shift berhasil ditutup.');
         $this->loadActiveDrawer(); // Refresh the active drawer status
+        $this->confirmingCloseShift = false;
+        $this->dispatch('close-modal', 'confirm-close-shift');
     }
 
     public function render()

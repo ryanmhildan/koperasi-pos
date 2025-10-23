@@ -44,7 +44,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-secondary-button wire:click="edit({{ $role->id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="delete({{ $role->id }})" wire:confirm="Apakah Anda yakin ingin menghapus role ini?">Hapus</x-danger-button>
+                                            <x-danger-button wire:click="confirmRoleDeletion({{ $role->id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -52,8 +52,32 @@
                         </table>
                     </div>
 
+                    <div class="mt-4">
+                        {{ $roles->links() }}
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
+
+    <x-confirmation-modal id="confirm-role-deletion" wire:model.live="confirmingRoleDeletion">
+        <x-slot name="title">
+            Hapus Role
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menghapus role ini? Tindakan ini tidak dapat dibatalkan.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingRoleDeletion', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="deleteRole" wire:loading.attr="disabled">
+                Hapus Role
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

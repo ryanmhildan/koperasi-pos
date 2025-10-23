@@ -21,7 +21,7 @@
                         <p>Shift dimulai pada: {{ $activeDrawer->shift_start->format('d M Y, H:i') }}</p>
                         <p>Saldo Awal: Rp {{ number_format($activeDrawer->opening_balance, 0, ',', '.') }}</p>
                         {{-- TODO: Add close shift functionality --}}
-                        <x-danger-button class="mt-4" wire:click="closeShift" wire:confirm="Apakah Anda yakin ingin menutup shift ini? Semua transaksi akan difinalisasi.">Tutup Shift</x-danger-button>
+                        <x-danger-button class="mt-4" wire:click="confirmCloseShift">Tutup Shift</x-danger-button>
                     </div>
                 @else
                     <div>
@@ -51,4 +51,24 @@
             </div>
         </div>
     </div>
+
+    <x-confirmation-modal id="confirm-close-shift" wire:model.live="confirmingCloseShift">
+        <x-slot name="title">
+            Tutup Shift
+        </x-slot>
+
+        <x-slot name="content">
+            Apakah Anda yakin ingin menutup shift ini? Semua transaksi akan difinalisasi.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingCloseShift', false)" wire:loading.attr="disabled">
+                Batal
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="closeShift" wire:loading.attr="disabled">
+                Tutup Shift
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>
