@@ -125,6 +125,12 @@
                             <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F6</kbd>
                         </div>
                     </div>
+                    <div class="mt-2 flex items-center space-x-2"> {{-- New div for history button --}}
+                        <x-secondary-button id="btn-transaction-history" wire:click="openTransactionHistoryModal" class="w-full justify-center">
+                            Histori Transaksi
+                        </x-secondary-button>
+                        <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F7</kbd>
+                    </div>
 
                 </div>
             </div>
@@ -143,9 +149,9 @@
                         <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F8</kbd>
                     </div>
                 </div>
-                <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 h-[75vh] overflow-y-auto p-2 bg-gray-50 rounded-lg" tabindex="0">
+                <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[75vh] overflow-y-auto p-2 bg-gray-50 rounded-lg" tabindex="0">
                     @forelse ($products as $product)
-                        <div wire:click="addToCart({{ $product['product_id'] }}, {{ (float)$product['location_selling_price'] }})" data-product-id="{{ $product['product_id'] }}" data-product-price="{{ $product['location_selling_price'] }}" class="product-item cursor-pointer border rounded-lg p-3 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col justify-between">
+                <div wire:click="addToCart({{ $product['product_id'] }}, {{ (float)$product['location_selling_price'] }})" data-product-id="{{ $product['product_id'] }}" data-product-price="{{ $product['location_selling_price'] }}" class="product-item cursor-pointer border rounded-lg p-3 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col justify-between aspect-square">
                             <div>
                                 <p class="font-bold text-sm">{{ $product['product_name'] }}</p>
                                 <p class="text-xs text-gray-500">{{ $product['category_name'] ?? '' }}</p>
@@ -199,6 +205,24 @@
             </x-danger-button>
         </x-slot>
     </x-confirmation-modal>
+
+    <x-modal name="transaction-history-modal" maxWidth="7xl">
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 border-b pb-3 mb-4">
+                Histori Transaksi Terakhir
+            </h2>
+
+            <!-- This is where the transaction history content will go -->
+            @livewire('pos-kasir-transaction-history') {{-- New Livewire component for history --}}
+
+            <div class="flex justify-end items-center mt-4 space-x-2">
+                <kbd class="font-sans text-sm font-semibold text-gray-500">F7</kbd>
+                <x-secondary-button wire:click="closeTransactionHistoryModal">
+                    Tutup
+                </x-secondary-button>
+            </div>
+        </div>
+    </x-modal>
 </div>
 
 @push('scripts')
@@ -303,6 +327,14 @@
                 case 'F9':
                     event.preventDefault();
                     document.getElementById('btn-open-shift')?.click();
+                    break;
+                case 'F7':
+                    event.preventDefault();
+                    if (@this.get('showTransactionHistoryModal')) {
+                        @this.call('closeTransactionHistoryModal');
+                    } else {
+                        @this.call('openTransactionHistoryModal');
+                    }
                     break;
             }
 

@@ -146,7 +146,8 @@ class PriceManagement extends Component
 
     public function render()
     {
-        $products = Product::where('product_name', 'like', '%' . $this->search . '%')
+        $products = Product::with(['sellingPrices.location']) // Eager load sellingPrices and their locations
+            ->where('product_name', 'like', '%' . $this->search . '%')
             ->orWhere('product_code', 'like', '%' . $this->search . '%')
             ->paginate(10);
 

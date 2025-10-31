@@ -55,7 +55,8 @@ class RolePermissionSeeder extends Seeder
         $kasir = Role::firstOrCreate(['name' => 'Kasir']);
         $kasir->syncPermissions([
             'access pos', 'open cash drawer', 'close cash drawer',
-            'create sales', 'view sales', 'view products', 'view stock'
+            'create sales', 'view sales', 'view products', 'view stock',
+            'void sales' // Add this permission
         ]);
 
         $anggota = Role::firstOrCreate(['name' => 'Anggota']);

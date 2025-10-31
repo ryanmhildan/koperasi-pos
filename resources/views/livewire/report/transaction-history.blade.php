@@ -6,9 +6,9 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8"> {{-- Changed max-w-7xl to max-w-full --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                
+
                 <!-- Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
@@ -30,39 +30,50 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Transaksi</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kasir</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
-                                <th scope="col" class="relative px-6 py-3">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">No Transaksi</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Tanggal</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Kasir</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Pelanggan</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Total</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Metode</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Status</th>
+                                <th scope="col" class="relative px-6 py-3 w-1/12">
                                     <span class="sr-only">Aksi</span>
                                 </th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($transactions as $transaction)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $transaction->transaction_number }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->created_at->format('d M Y, H:i') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transaction->cashier->full_name ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <tr class="{{ $transaction->status === 'voided' ? 'bg-gray-100 text-gray-500' : '' }}"> {{-- Conditional styling for voided rows --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {{ $transaction->status === 'voided' ? 'text-gray-500' : 'text-gray-900' }}">{{ $transaction->transaction_number }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $transaction->created_at->format('d M Y, H:i') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $transaction->cashier->full_name ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($transaction->payment_method === 'credit_card')
                                             {{ $transaction->customer->full_name ?? 'N/A' }}
                                         @else
                                             -
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <x-secondary-button wire:click="viewDetails({{ $transaction->transaction_id }})">Detail</x-secondary-button>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">{{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                        @if ($transaction->status === 'voided')
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Dibatalkan</span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Selesai</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1"> {{-- Added space-x-1 for button spacing --}}
+                                        <x-secondary-button wire:click="viewDetails({{ $transaction->transaction_id }})" class="px-2 py-1 text-xs" title="Lihat detail transaksi">Detail</x-secondary-button> {{-- Adjusted button size and added title --}}
+                                        @if ($transaction->status !== 'voided' && auth()->user()->can('void sales'))
+                                            <x-danger-button wire:click="confirmVoid({{ $transaction->transaction_id }})" class="px-2 py-1 text-xs" title="Batalkan transaksi ini">Batal</x-danger-button> {{-- Adjusted button size and added title --}}
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada transaksi ditemukan.</td>
+                                    <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada transaksi ditemukan.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -103,10 +114,10 @@
                                     <table class="min-w-full divide-y divide-gray-200 mt-2">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
-                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Jumlah</th>
-                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga Satuan</th>
-                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-4/12">Produk</th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase w-2/12">Jumlah</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase w-3/12">Harga Satuan</th>
+                                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase w-3/12">Subtotal</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
@@ -139,4 +150,25 @@
             </div>
         </div>
     @endif
+
+    <!-- Confirmation Modal for Voiding Transaction -->
+    <x-confirmation-modal wire:model="confirmingVoid" id="confirm-void-transaction">
+        <x-slot name="title">
+            {{ __('Batalkan Transaksi') }}
+        </x-slot>
+
+        <x-slot name="content">
+            {{ __('Anda yakin ingin membatalkan transaksi ini? Stok akan dikembalikan dan limit kartu kredit (jika ada) akan dipulihkan.') }}
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cancelVoid" wire:loading.attr="disabled">
+                {{ __('Tidak') }}
+            </x-secondary-button>
+
+            <x-danger-button class="ml-3" wire:click="voidTransaction({{ $transactionToVoidId }})" wire:loading.attr="disabled">
+                {{ __('Ya, Batalkan') }}
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
 </div>

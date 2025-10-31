@@ -7,6 +7,7 @@
     <title>{{ config('app.name', 'Koperasi POS') }}</title>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @livewireStyles
 </head>
 <body class="font-sans antialiased">
@@ -22,6 +23,25 @@
     <livewire:role-form-modal />
     <livewire:user-form-modal />
     <livewire:user-card-modal />
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('swal:success', event => {
+                Swal.fire({
+                    title: event.title,
+                    text: event.text,
+                    icon: 'success',
+                });
+            });
+
+            Livewire.on('swal:error', event => {
+                Swal.fire({
+                    title: event.title,
+                    text: event.text,
+                    icon: 'error',
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

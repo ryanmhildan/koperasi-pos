@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price, Location, SellingPrice};
+use App\Models\{Product, SalesTransaction, SalesTransactionDetail, CashDrawer, Stock, Price, Location, SellingPrice, StockMovement};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -24,11 +24,14 @@ class PosKasir extends Component
     public $confirmingTransaction = false;
     public $transactionType = '';
     public $confirmingCloseShift = false;
+    public $showTransactionHistoryModal = false; // New property
 
     // Properties from CashDrawer
     public $opening_balance = 0;
     public $location_id;
     public $locations = [];
+
+    protected $listeners = ['transactionVoided' => '$refresh']; // Listen for voided event from child component
 
     protected function rules()
     {
@@ -42,6 +45,18 @@ class PosKasir extends Component
     public function mount()
     {
         $this->locations = Location::where('is_active', true)->get();
+    }
+
+    public function openTransactionHistoryModal()
+    {
+        $this->showTransactionHistoryModal = true;
+        $this->dispatch('open-modal', 'transaction-history-modal');
+    }
+
+    public function closeTransactionHistoryModal()
+    {
+        $this->showTransactionHistoryModal = false;
+        $this->dispatch('close-modal', 'transaction-history-modal');
     }
 
     public function updatedCustomerSearch($value)
@@ -316,7 +331,7 @@ class PosKasir extends Component
 
         $transaction = SalesTransaction::create([
             'transaction_number' => 'TRX-' . date('Ymd') . '-' . Str::random(6),
-            'user_id' => $this->selected_customer->user_id ?? auth()->id(), // Use selected customer if available
+            'user_id' => $this->selected_customer->user_id ?? null, // Use selected customer if available, otherwise null
             'cashier_id' => auth()->id(),
             'drawer_id' => $this->cashDrawer->drawer_id,
             'transaction_date' => today(),
@@ -326,6 +341,7 @@ class PosKasir extends Component
             'total_amount' => $this->total,
             'payment_method' => $this->transactionType,
             'status' => 'completed',
+            'card_id' => ($this->transactionType === 'credit_card' && isset($card)) ? $card->card_id : null,
         ]);
 
         foreach ($this->cart as $item) {
@@ -349,6 +365,19 @@ class PosKasir extends Component
                           ->first();
             if ($stock) {
                 $stock->decrement('current_stock', $item['quantity']);
+
+                // Create Stock Movement Record for sales
+                StockMovement::create([
+                    'product_id' => $item['product_id'],
+                    'location_id' => $this->cashDrawer->location_id,
+                    'movement_type' => 'out',
+                    'quantity' => $item['quantity'],
+                    'average_price' => $costPrice, // The cost price at the time of sale
+                    'reference_type' => 'sales',
+                    'reference_id' => $transaction->transaction_id,
+                    'movement_date' => today(),
+                    'created_by' => auth()->id(),
+                ]);
             }
         }
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6be00a105717a81140a4ec015a184618",
+    "content-hash": "c72db357f157527c3c1c798977947f83",
     "packages": [
         {
             "name": "brick/math",
@@ -2275,6 +2275,64 @@
                 "source": "https://github.com/Maatwebsite/Laravel-Excel/tree/master"
             },
             "time": "2014-07-10T09:06:07+00:00"
+        },
+        {
+            "name": "mohabmamdouh/wallet",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mohabmamdouh/wallet.git",
+                "reference": "e355b9ae9080fb519325df77b25fbdeb15aebcab"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mohabmamdouh/wallet/zipball/e355b9ae9080fb519325df77b25fbdeb15aebcab",
+                "reference": "e355b9ae9080fb519325df77b25fbdeb15aebcab",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^10.0|^11.0",
+                "illuminate/support": "^10.0|^11.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^8.0|^9.0",
+                "phpunit/phpunit": "^10.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "MohabMamdouh\\Wallet\\Providers\\WalletServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MohabMamdouh\\Wallet\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "MohabMamdouh\\Wallet\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mohab Mamdouh",
+                    "email": "mohab@example.com"
+                }
+            ],
+            "description": "Advanced Laravel Wallet System for financial platforms",
+            "support": {
+                "source": "https://github.com/mohabmamdouh/wallet/tree/v0.1.0",
+                "issues": "https://github.com/mohabmamdouh/wallet/issues"
+            },
+            "time": "2025-10-11T17:48:24+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -8695,7 +8753,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "mohabmamdouh/wallet": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

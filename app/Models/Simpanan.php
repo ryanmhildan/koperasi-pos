@@ -27,4 +27,9 @@ class Simpanan extends Model
     {
         return $this->belongsTo(Pinjaman::class, 'pinjaman_id', 'pinjaman_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
 }

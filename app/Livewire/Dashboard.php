@@ -46,6 +46,7 @@ class Dashboard extends Component
             ['label' => 'Angsuran', 'description' => 'Kelola angsuran pinjaman.', 'route' => 'koperasi.angsuran', 'permission' => 'view angsuran'],
             ['label' => 'Cash Out', 'description' => 'Kelola penarikan tunai.', 'route' => 'koperasi.cashout', 'permission' => 'view cashout'],
             ['label' => 'Kartu Kredit Saya', 'description' => 'Lihat detail kartu kredit Anda.', 'route' => 'my-credit-card', 'permission' => 'view own credit card'],
+            ['label' => 'Riwayat Transaksi Kartu Kredit', 'description' => 'Lihat riwayat transaksi kartu kredit Anda.', 'route' => 'my-credit-card.history', 'permission' => 'view own credit card'],
         ];
     }
 

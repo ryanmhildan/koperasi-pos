@@ -16,6 +16,8 @@ class PinjamanManagement extends Component
     public $showModal = false;
     public $editMode = false;
     public $pinjamanId;
+    public $showDeleteModal = false;
+    public $pinjamanIdToDelete;
     
     public $user_id, $loan_amount, $interest_rate, $tenor_months;
     public $loan_type, $loan_purpose, $loan_date, $status = 'active', $is_blocked = false;
@@ -63,6 +65,10 @@ class PinjamanManagement extends Component
 
         // Generate angsuran schedule
         $this->generateAngsuranSchedule($pinjaman, $monthlyPayment);
+
+        // Tambahkan dana pinjaman ke wallet user
+        $user = User::find($this->user_id);
+        $user->getOrCreateWallet()->deposit($this->loan_amount, (string)$pinjaman->pinjaman_id, ['description' => 'Pencairan Pinjaman: ' . $this->loan_purpose]);
 
         session()->flash('message', 'Pinjaman berhasil ditambahkan.');
         $this->closeModal();

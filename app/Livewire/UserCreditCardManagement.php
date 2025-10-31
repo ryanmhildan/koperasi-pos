@@ -64,7 +64,7 @@ class UserCreditCardManagement extends Component
             'expiry_date' => $this->expiry_date,
             'bank_name' => $this->bank_name,
             'is_active' => $this->is_active,
-            'current_balance' => 0, // Initial balance
+            'current_balance' => $this->credit_limit, // Initial balance is the credit limit
         ]);
 
         session()->flash('message', 'Kartu kredit berhasil ditambahkan.');

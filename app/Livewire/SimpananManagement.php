@@ -25,6 +25,11 @@ class SimpananManagement extends Component
         'description' => 'nullable|string',
     ];
 
+    public function mount() 
+    {
+        //
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -41,12 +46,16 @@ class SimpananManagement extends Component
     {
         $this->validate();
 
-        Simpanan::create([
+        $simpanan = Simpanan::create([
             'user_id' => $this->user_id,
             'amount' => $this->amount,
             'transaction_date' => $this->transaction_date,
             'description' => $this->description,
         ]);
+
+        // Tambahkan dana ke wallet user
+        $user = User::find($this->user_id);
+        $user->wallet()->deposit($this->amount, json_encode(['description' => 'Simpanan: ' . $this->description, 'reference_id' => $simpanan->id]));
 
         session()->flash('message', 'Simpanan berhasil ditambahkan.');
         $this->closeModal();

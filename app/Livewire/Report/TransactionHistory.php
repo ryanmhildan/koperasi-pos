@@ -3,9 +3,10 @@
 namespace App\Livewire\Report;
 
 use Livewire\Component;
-use App\Models\SalesTransaction;
+use App\Models\{SalesTransaction, SalesTransactionDetail, Stock, StockMovement, UserCreditCard};
 use Livewire\WithPagination;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB; // Import DB facade
 
 class TransactionHistory extends Component
 {
@@ -15,6 +16,11 @@ class TransactionHistory extends Component
     public $endDate;
     public $search;
     public $selectedTransaction;
+    public $userId; // New property
+    public $filterByCreditCard = false; // New property
+
+    public $confirmingVoid = false; // New property for confirmation modal
+    public $transactionToVoidId; // New property to store the ID of the transaction to be voided
 
 
     public function mount()
@@ -22,6 +28,8 @@ class TransactionHistory extends Component
         $this->startDate = Carbon::today()->startOfMonth()->toDateString();
         $this->endDate = Carbon::today()->endOfMonth()->toDateString();
         $this->selectedTransaction = null;
+        // Optionally, if this component is always for the logged-in user, you can set it here:
+        // $this->userId = auth()->id();
     }
 
     public function viewDetails($transactionId)
@@ -34,6 +42,87 @@ class TransactionHistory extends Component
         $this->selectedTransaction = null;
     }
 
+    public function confirmVoid($transactionId)
+    {
+        $this->confirmingVoid = true;
+        $this->transactionToVoidId = $transactionId;
+        $this->dispatch('open-modal', 'confirm-void-transaction'); // Assuming a modal for confirmation
+    }
+
+    public function voidTransaction($transactionId)
+    {
+        $this->transactionToVoidId = $transactionId; // Set the property from the passed parameter
+
+        if (!$this->transactionToVoidId) {
+            session()->flash('error', 'Tidak ada transaksi yang dipilih untuk dibatalkan.');
+            return;
+        }
+
+        DB::beginTransaction();
+        try {
+            $transaction = SalesTransaction::with('details', 'creditCard', 'cashDrawer')->find($this->transactionToVoidId);
+
+            if (!$transaction) {
+                session()->flash('error', 'Transaksi tidak ditemukan.');
+                DB::rollBack();
+                return;
+            }
+
+            if ($transaction->status === 'voided') {
+                session()->flash('error', 'Transaksi ini sudah dibatalkan sebelumnya.');
+                DB::rollBack();
+                return;
+            }
+
+            // Update transaction status
+            $transaction->status = 'voided';
+            $transaction->save();
+
+            // Revert stock
+            foreach ($transaction->details as $detail) {
+                $stock = Stock::where('product_id', $detail->product_id)
+                              ->where('location_id', $transaction->cashDrawer->location_id ?? null)
+                              ->first();
+
+                if ($stock) {
+                    $stock->increment('current_stock', $detail->quantity);
+
+                    StockMovement::create([
+                        'product_id' => $detail->product_id,
+                        'location_id' => $transaction->cashDrawer->location_id ?? null,
+                        'movement_type' => 'in',
+                        'quantity' => $detail->quantity,
+                        'average_price' => $detail->average_price,
+                        'reference_type' => 'void_sales',
+                        'reference_id' => $transaction->transaction_id,
+                        'movement_date' => today(),
+                        'created_by' => auth()->id(),
+                    ]);
+                }
+            }
+
+            // Revert credit card balance if applicable
+            if ($transaction->payment_method === 'credit_card' && $transaction->card_id && $transaction->creditCard) {
+                $creditCard = $transaction->creditCard;
+                $creditCard->decrement('current_balance', $transaction->total_amount);
+            }
+
+            DB::commit();
+            session()->flash('success', 'Transaksi berhasil dibatalkan dan stok/limit dikembalikan.');
+            $this->reset(['confirmingVoid', 'transactionToVoidId']);
+            $this->dispatch('close-modal', 'confirm-void-transaction');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
+        }
+    }
+
+    public function cancelVoid()
+    {
+        $this->reset(['confirmingVoid', 'transactionToVoidId']);
+        $this->dispatch('close-modal', 'confirm-void-transaction');
+    }
+
     public function render()
     {
         $transactions = SalesTransaction::with(['cashier', 'customer'])
@@ -43,6 +132,14 @@ class TransactionHistory extends Component
                     ->orWhereHas('cashier', function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%');
                     });
+            })
+            // Add this new condition
+            ->when($this->userId, function ($query) {
+                $query->where('user_id', $this->userId);
+            })
+            // Make the payment_method filter conditional
+            ->when($this->filterByCreditCard, function ($query) {
+                $query->where('payment_method', 'credit_card');
             })
             ->latest()
             ->paginate(10);

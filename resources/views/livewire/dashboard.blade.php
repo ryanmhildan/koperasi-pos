@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    @if(auth()->user()->hasRole('Admin'))
+    @can('view reports')
     <!-- Admin Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Admin</p>
@@ -34,6 +34,7 @@
     </div>
     @endif
 
+    @can('access pos')
     <!-- Kasir Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Kasir</p>
@@ -55,7 +56,9 @@
             @endforeach
         </div>
     </div>
+    @endcan
 
+    @can('view simpanan')
     <!-- Koperasi Menu Section -->
     <div class="mb-12 px-6">
         <p class="text-base font-semibold text-gray-600 mb-3">Koperasi</p>
@@ -70,5 +73,6 @@
             @endforeach
         </div>
     </div>
+    @endcan
 
 </div>

@@ -1,6 +1,6 @@
 <div>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8"> {{-- Changed max-w-7xl to max-w-full --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h2 class="text-2xl font-semibold mb-4">Manajemen Stok</h2>
@@ -63,11 +63,11 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipe</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Referensi</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Catatan</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Tanggal</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Tipe</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase w-1/6">Jumlah</th> {{-- Changed to text-right --}}
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-2/6">Referensi</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Catatan</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -75,7 +75,7 @@
                             <tr>
                                 <td class="px-4 py-2 whitespace-nowrap">{{ $movement->movement_date->format('d M Y') }}</td>
                                 <td class="px-4 py-2 whitespace-nowrap">{{ $movement->movement_type }}</td>
-                                <td class="px-4 py-2 whitespace-nowrap font-semibold {{ $movement->quantity > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                <td class="px-4 py-2 whitespace-nowrap text-right font-semibold {{ $movement->quantity > 0 ? 'text-green-600' : 'text-red-600' }}"> {{-- Added text-right and conditional text color --}}
                                     {{ $movement->quantity > 0 ? '+' : '' }}{{ $movement->quantity }}
                                 </td>
                                 <td class="px-4 py-2 whitespace-nowrap">{{ $movement->reference_type }}: {{ $movement->reference_id }}</td>

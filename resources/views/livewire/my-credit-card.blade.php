@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
     <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8"> {{-- Changed max-w-3xl to max-w-full --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     @if($card)
@@ -49,6 +49,13 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="mt-6 flex justify-end">
+                            <a href="{{ route('my-credit-card.history') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                Lihat Riwayat Transaksi
+                            </a>
+                        </div>
+
                     @else
                         <p>Anda tidak memiliki kartu kredit terdaftar. Silakan hubungi admin.</p>
                     @endif

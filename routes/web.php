@@ -13,6 +13,8 @@ use App\Livewire\RoleManagement;
 use App\Livewire\Report\TransactionHistory;
 use App\Livewire\Report\ShiftHistory;
 use App\Livewire\MyCreditCard;
+use App\Livewire\CashOutManagement;
+use App\Livewire\MyCreditCardHistory; // New use statement
 
 Route::get('/', function () {
     return redirect('/login');
@@ -21,15 +23,22 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/my-credit-card', MyCreditCard::class)->name('my-credit-card');
+    Route::get('/my-credit-card/history', MyCreditCardHistory::class)->name('my-credit-card.history');
+
+    // Member Routes
+    Route::middleware(['role:Anggota'])->prefix('me')->name('me.')->group(function () {
+        Route::get('/simpanan', \App\Livewire\MySimpanan::class)->name('simpanan');
+        Route::get('/pinjaman', \App\Livewire\MyPinjaman::class)->name('pinjaman');
+        Route::get('/angsuran', \App\Livewire\MyAngsuran::class)->name('angsuran');
+        Route::get('/cashout', \App\Livewire\MyCashOut::class)->name('cashout');
+    });
 
     // Koperasi Routes
     Route::prefix('koperasi')->name('koperasi.')->group(function () {
         Route::get('/simpanan', SimpananManagement::class)->name('simpanan');
         Route::get('/pinjaman', PinjamanManagement::class)->name('pinjaman');
         Route::get('/angsuran', AngsuranManagement::class)->name('angsuran');
-        // Assuming CashOutTransaction management is handled within a different component or needs a new one.
-        // For now, let's create a placeholder view for cashout.
-        Route::get('/cashout', function() { return view('livewire.coming-soon'); })->name('cashout');
+        Route::get('/cashout', CashOutManagement::class)->name('cashout');
     });
 
     // POS Routes

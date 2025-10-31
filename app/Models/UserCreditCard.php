@@ -12,13 +12,14 @@ class UserCreditCard extends Model
     protected $primaryKey = 'card_id';
     
     protected $fillable = [
-        'user_id', 'card_number', 'credit_limit', 'current_balance',
+        'user_id', 'card_number', 'credit_limit', 'used_balance', 'current_balance',
         'cash_out_limit', 'cash_out_used_this_month', 'expiry_date',
         'bank_name', 'is_active'
     ];
 
     protected $casts = [
         'credit_limit' => 'decimal:2',
+        'used_balance' => 'decimal:2',
         'current_balance' => 'decimal:2',
         'cash_out_limit' => 'decimal:2',
         'cash_out_used_this_month' => 'decimal:2',
