@@ -248,6 +248,9 @@
 </style>
 <script>
     document.addEventListener('livewire:init', () => {
+        // Force close the history modal on initial load as a safeguard
+        window.dispatchEvent(new CustomEvent('close-modal', { detail: 'transaction-history-modal' }));
+
         const searchInput = document.getElementById('product-search-bar');
         const customerSearchInput = document.getElementById('customer_search');
         const cashReceivedInput = document.getElementById('cash_received');

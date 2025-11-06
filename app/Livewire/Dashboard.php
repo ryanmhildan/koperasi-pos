@@ -9,6 +9,7 @@ class Dashboard extends Component
     public $adminMenu = [];
     public $kasirMenu = [];
     public $koperasiMenu = [];
+    public $anggotaMenu = [];
     public string $role = '';
 
     public function mount()
@@ -29,6 +30,7 @@ class Dashboard extends Component
             ['label' => 'Kategori', 'description' => 'Kelola kategori produk.', 'route' => 'admin.categories', 'permission' => 'view categories'],
             ['label' => 'Unit', 'description' => 'Kelola satuan produk.', 'route' => 'admin.units', 'permission' => 'view units'],
             ['label' => 'Kartu Kredit', 'description' => 'Kelola kartu kredit anggota.', 'route' => 'admin.credit-cards', 'permission' => 'edit users'],
+            ['label' => 'Dana Operasional', 'description' => 'Kelola dana operasional anggota.', 'route' => 'admin.operasional', 'permission' => 'edit users'],
         ];
 
         $this->kasirMenu = [
@@ -47,6 +49,14 @@ class Dashboard extends Component
             ['label' => 'Cash Out', 'description' => 'Kelola penarikan tunai.', 'route' => 'koperasi.cashout', 'permission' => 'view cashout'],
             ['label' => 'Kartu Kredit Saya', 'description' => 'Lihat detail kartu kredit Anda.', 'route' => 'my-credit-card', 'permission' => 'view own credit card'],
             ['label' => 'Riwayat Transaksi Kartu Kredit', 'description' => 'Lihat riwayat transaksi kartu kredit Anda.', 'route' => 'my-credit-card.history', 'permission' => 'view own credit card'],
+        ];
+
+        $this->anggotaMenu = [
+            ['label' => 'Simpanan Saya', 'description' => 'Lihat dan tambah simpanan.', 'route' => 'me.simpanan', 'permission' => 'isAnggota'],
+            ['label' => 'Pinjaman Saya', 'description' => 'Lihat dan ajukan pinjaman.', 'route' => 'me.pinjaman', 'permission' => 'isAnggota'],
+            ['label' => 'Angsuran Saya', 'description' => 'Lihat dan bayar angsuran.', 'route' => 'me.angsuran', 'permission' => 'isAnggota'],
+            ['label' => 'Cash Out Saya', 'description' => 'Lihat dan ajukan penarikan.', 'route' => 'me.cashout', 'permission' => 'isAnggota'],
+            ['label' => 'Histori Transaksi', 'description' => 'Lihat semua riwayat transaksi.', 'route' => 'me.history', 'permission' => 'isAnggota'],
         ];
     }
 

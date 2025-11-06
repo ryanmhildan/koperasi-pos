@@ -24,8 +24,14 @@ class MySimpanan extends Component
     {
         $this->validate();
 
+        $user = Auth::user();
+        $simpananWallet = $user->getOrCreateWallet('simpanan');
+
+        $transaction = $simpananWallet->deposit($this->amount, null, ['description' => $this->description]);
+        $simpananWallet->confirmTransaction($transaction);
+
         Simpanan::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->user_id,
             'amount' => $this->amount,
             'transaction_date' => now(),
             'description' => $this->description,

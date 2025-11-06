@@ -75,4 +75,21 @@
     </div>
     @endcan
 
+    @can('isAnggota')
+    <!-- Anggota Menu Section -->
+    <div class="mb-12 px-6">
+        <p class="text-base font-semibold text-gray-600 mb-3">Anggota</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @foreach ($anggotaMenu as $item)
+                @can($item['permission'])
+                    <a href="{{ route($item['route']) }}" class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ $item['label'] }}</h3>
+                        <p class="text-gray-500 mt-1">{{ $item['description'] }}</p>
+                    </a>
+                @endcan
+            @endforeach
+        </div>
+    </div>
+    @endcan
+
 </div>

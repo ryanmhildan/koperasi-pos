@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('isAnggota', function ($user) {
-            return $user->hasRole('Anggota');
+            return $user->hasRole('Anggota') || $user->hasRole('Admin');
         });
     }
 }

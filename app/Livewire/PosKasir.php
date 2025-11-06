@@ -45,6 +45,7 @@ class PosKasir extends Component
     public function mount()
     {
         $this->locations = Location::where('is_active', true)->get();
+        $this->showTransactionHistoryModal = false; // Always start with the modal closed
     }
 
     public function openTransactionHistoryModal()
@@ -79,16 +80,15 @@ class PosKasir extends Component
 
     public function selectCustomer($userId)
     {
-        $this->selected_customer = \App\Models\User::with('creditCards')->find($userId);
+        $this->selected_customer = \App\Models\User::find($userId);
         $this->customer_search = '';
         $this->searched_customers = [];
 
-        $card = $this->selected_customer->creditCards->where('is_active', true)->first();
-        if ($card) {
-            $availableCredit = $card->credit_limit - $card->current_balance;
-            $this->customer_credit_info = 'Sisa Limit: Rp ' . number_format($availableCredit, 0, ',', '.');
+        $operasionalWallet = $this->selected_customer->getOrCreateWallet('operasional');
+        if ($operasionalWallet) {
+            $this->customer_credit_info = 'Saldo Operasional: Rp ' . number_format($operasionalWallet->balance(), 0, ',', '.');
         } else {
-            $this->customer_credit_info = 'Tidak ada kartu kredit aktif.';
+            $this->customer_credit_info = 'Tidak ada wallet operasional.';
         }
     }
 
@@ -122,6 +122,7 @@ class PosKasir extends Component
 
         session()->flash('success', 'Shift berhasil dibuka. Selamat bekerja!');
         $this->reset('opening_balance', 'location_id');
+        $this->showTransactionHistoryModal = false; // Ensure modal is closed
         $this->loadProducts();
     }
 
@@ -152,6 +153,7 @@ class PosKasir extends Component
 
         session()->flash('success', 'Shift berhasil ditutup.');
         $this->cashDrawer = null; // Refresh the active drawer status
+        $this->showTransactionHistoryModal = false; // Ensure modal is closed
         $this->confirmingCloseShift = false;
         $this->dispatch('close-modal', 'confirm-close-shift');
     }
@@ -315,16 +317,10 @@ class PosKasir extends Component
                 return;
             }
 
-            $card = $this->selected_customer->creditCards->where('is_active', true)->first();
+            $operasionalWallet = $this->selected_customer->getWallet('operasional');
 
-            if (!$card) {
-                session()->flash('error', 'Pelanggan tidak memiliki kartu kredit yang aktif.');
-                return;
-            }
-
-            $availableCredit = $card->credit_limit - $card->current_balance;
-            if ($this->total > $availableCredit) {
-                session()->flash('error', 'Limit kredit pelanggan tidak mencukupi. Sisa limit: Rp ' . number_format($availableCredit, 0, ',', '.'));
+            if (!$operasionalWallet || $operasionalWallet->balance() < $this->total) {
+                session()->flash('error', 'Saldo operasional pelanggan tidak mencukupi.');
                 return;
             }
         }
@@ -341,7 +337,7 @@ class PosKasir extends Component
             'total_amount' => $this->total,
             'payment_method' => $this->transactionType,
             'status' => 'completed',
-            'card_id' => ($this->transactionType === 'credit_card' && isset($card)) ? $card->card_id : null,
+            'card_id' => null, // This is now deprecated
         ]);
 
         foreach ($this->cart as $item) {
@@ -381,11 +377,12 @@ class PosKasir extends Component
             }
         }
 
-        // Update cash drawer only for cash transactions
+        // Update cash drawer or wallet
         if ($this->transactionType === 'cash') {
             $this->cashDrawer->increment('total_sales', $this->total);
-        } elseif ($this->transactionType === 'credit_card' && isset($card)) {
-            $card->increment('current_balance', $this->total);
+        } elseif ($this->transactionType === 'credit_card') {
+            $operasionalWallet = $this->selected_customer->getWallet('operasional');
+            $operasionalWallet->withdraw($this->total, null, ['description' => 'Pembelian di POS', 'reference_id' => $transaction->transaction_id]);
         }
 
         $this->reset(['cart', 'total', 'search', 'cashReceived', 'change', 'selected_customer']);

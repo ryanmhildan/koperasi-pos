@@ -68,7 +68,9 @@ class PinjamanManagement extends Component
 
         // Tambahkan dana pinjaman ke wallet user
         $user = User::find($this->user_id);
-        $user->getOrCreateWallet()->deposit($this->loan_amount, (string)$pinjaman->pinjaman_id, ['description' => 'Pencairan Pinjaman: ' . $this->loan_purpose]);
+        $pinjamanWallet = $user->getOrCreateWallet('pinjaman');
+        $transaction = $pinjamanWallet->deposit($this->loan_amount, null, ['description' => 'Pencairan Pinjaman: ' . $this->loan_purpose, 'reference_id' => $pinjaman->pinjaman_id]);
+        $pinjamanWallet->confirmTransaction($transaction);
 
         session()->flash('message', 'Pinjaman berhasil ditambahkan.');
         $this->closeModal();

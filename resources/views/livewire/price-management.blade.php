@@ -113,7 +113,7 @@
                             <tbody>
                                 @forelse($sellingPrices as $price)
                                     <tr>
-                                        <td class="px-2 py-1">{{ $price->location->name }}</td>
+                                        <td class="px-2 py-1">{{ $price->location->location_name }}</td>
                                         <td class="px-2 py-1">Rp {{ number_format($price->selling_price, 0, ',', '.') }}</td>
                                         <td class="px-2 py-1">{{ $price->discount }}%</td>
                                         <td class="px-2 py-1 text-right">
