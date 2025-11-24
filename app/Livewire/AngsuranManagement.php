@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Angsuran;
-use App\Models\UserCreditCard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -40,20 +39,19 @@ class AngsuranManagement extends Component
                 throw new \Exception("Angsuran ini sudah dibayar atau statusnya tidak valid.");
             }
 
-            $userCreditCard = UserCreditCard::where('user_id', Auth::id())->firstOrFail();
+            $user = Auth::user();
+            $operasionalWallet = $user->getWallet('operasional');
             
             // Recalculate denda just in case
             $angsuran->denda = $angsuran->calculateDenda();
             $totalToPay = $angsuran->total_amount;
 
-            if ($userCreditCard->current_balance < $totalToPay) {
-                throw new \Exception("Saldo pada kartu kredit Anda tidak mencukupi.");
+            if ($operasionalWallet->balance < $totalToPay) {
+                throw new \Exception("Saldo pada wallet operasional Anda tidak mencukupi.");
             }
 
-            // Deduct balance from credit card
-            $userCreditCard->current_balance -= $totalToPay;
-            $userCreditCard->used_balance += $totalToPay;
-            $userCreditCard->save();
+            // Withdraw from operasional wallet
+            $operasionalWallet->withdraw($totalToPay, ['description' => 'Pembayaran angsuran pinjaman', 'reference_id' => $angsuran->id]);
 
             // Process payment on angsuran model
             $angsuran->processPayment();

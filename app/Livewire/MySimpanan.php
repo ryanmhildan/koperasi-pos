@@ -3,10 +3,9 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-
-use App\Models\Simpanan;
 use Illuminate\Support\Facades\Auth;
 use Livewire\WithPagination;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class MySimpanan extends Component
 {
@@ -25,17 +24,14 @@ class MySimpanan extends Component
         $this->validate();
 
         $user = Auth::user();
-        $simpananWallet = $user->getOrCreateWallet('simpanan');
+        
+        $simpananWallet = $user->getWallet('simpanan');
+        if (!$simpananWallet) {
+            $user->createWallet(['name' => 'simpanan', 'slug' => 'simpanan']);
+            $simpananWallet = $user->getWallet('simpanan');
+        }
 
-        $transaction = $simpananWallet->deposit($this->amount, null, ['description' => $this->description]);
-        $simpananWallet->confirmTransaction($transaction);
-
-        Simpanan::create([
-            'user_id' => $user->user_id,
-            'amount' => $this->amount,
-            'transaction_date' => now(),
-            'description' => $this->description,
-        ]);
+        $simpananWallet->deposit($this->amount, ['description' => $this->description]);
 
         $this->reset(['amount', 'description']);
         $this->dispatch('swal:success', [
@@ -46,9 +42,23 @@ class MySimpanan extends Component
 
     public function render()
     {
-        $simpanan = Simpanan::where('user_id', Auth::id())->latest()->paginate(10);
+        $user = Auth::user();
+        $simpananWallet = $user->getWallet('simpanan');
+
+        if (!$simpananWallet) {
+            // Return an empty paginator instance to prevent ->links() from crashing
+            $transactions = new LengthAwarePaginator([], 0, 10);
+            return view('livewire.my-simpanan', [
+                'transactions' => $transactions,
+                'wallet' => null,
+            ]);
+        }
+
+        $transactions = $simpananWallet->transactions()->latest()->paginate(10);
+
         return view('livewire.my-simpanan', [
-            'simpanan' => $simpanan,
+            'transactions' => $transactions,
+            'wallet' => $simpananWallet,
         ]);
     }
 }

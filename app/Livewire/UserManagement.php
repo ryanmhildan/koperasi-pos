@@ -49,13 +49,7 @@ class UserManagement extends Component
         $this->dispatch('close-modal', 'confirm-user-deletion');
     }
 
-    public function manageCard($userId)
-    {
-        $this->dispatch('manageUserCard', userId: $userId);
-    }
-
     #[On('userSaved')]
-    #[On('cardSaved')]
     public function render()
     {
         $users = User::with('roles')

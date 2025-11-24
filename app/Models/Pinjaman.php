@@ -27,9 +27,44 @@ class Pinjaman extends Model
         'is_blocked' => 'boolean',
     ];
 
+    public function recalculateRemainingBalance()
+    {
+        // Hitung total sudah dibayar
+        $totalPaid = $this->angsuran()->where('status', 'paid')->sum('amount');
+
+        // Total pinjaman dari semua angsuran
+        $totalLoanAmount = $this->angsuran()->sum('amount');
+
+        // Sisa pinjaman
+        $remaining = $totalLoanAmount - $totalPaid;
+
+        $updateData = [
+            'remaining_balance' => max(round($remaining, 2), 0),
+            'total_paid' => $totalPaid
+        ];
+
+        // Cek jika pinjaman sudah lunas, beri toleransi jika ada selisih pembulatan
+        if (round($remaining, 2) <= 0.01) {
+            $updateData['status'] = 'closed';
+        }
+
+        // Update field sisa pinjaman
+        $this->update($updateData);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function getStatusTextAttribute()
+    {
+        return match ($this->status) {
+            'closed' => 'Lunas',
+            'active' => 'Aktif',
+            'pending' => 'Pending',
+            default => ucfirst($this->status),
+        };
     }
 
     public function angsuran()

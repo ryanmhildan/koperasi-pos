@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\UserCreditCard;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -58,9 +57,29 @@ class UserSeeder extends Seeder
             $anggota->assignRole('Anggota');
 
             // Create Wallets for each member
-            $anggota->getOrCreateWallet('simpanan');
-            $anggota->getOrCreateWallet('pinjaman');
-            $anggota->getOrCreateWallet('operasional');
+            if (!$anggota->hasWallet('simpanan')) {
+                $anggota->createWallet(['name' => 'simpanan', 'slug' => 'simpanan']);
+            }
+            if (!$anggota->hasWallet('pinjaman')) {
+                $anggota->createWallet(['name' => 'pinjaman', 'slug' => 'pinjaman']);
+            }
+            if (!$anggota->hasWallet('operasional')) {
+                $anggota->createWallet(['name' => 'operasional', 'slug' => 'operasional']);
+            }
         }
+
+        // Create Koperasi User
+        $koperasi = User::firstOrCreate(
+            ['nrp' => 'koperasi'],
+            [
+                'username' => 'koperasi',
+                'email' => 'koperasi@koperasi.com',
+                'password' => Hash::make('password'),
+                'full_name' => 'Koperasi',
+                'phone' => '081234567899',
+                'join_date' => now()->toDateString(),
+                'is_active' => false, // This user should not be able to log in
+            ]
+        );
     }
 }

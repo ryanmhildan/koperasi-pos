@@ -13,7 +13,6 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users', 'user_id'); // customer
             $table->foreignId('cashier_id')->constrained('users', 'user_id'); // cashier
             $table->foreignId('drawer_id')->constrained('cash_drawers', 'drawer_id');
-            $table->foreignId('card_id')->nullable()->constrained('user_credit_cards', 'card_id');
             $table->date('transaction_date');
             $table->time('transaction_time');
             $table->decimal('sub_total', 15, 2);

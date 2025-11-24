@@ -13,9 +13,18 @@ class AdminDashboard extends Component
 {
     public function render()
     {
+        $anggota = User::role('Anggota')->get();
+        $totalSimpanan = 0;
+        foreach ($anggota as $member) {
+            $simpananWallet = $member->getWallet('simpanan');
+            if ($simpananWallet) {
+                $totalSimpanan += $simpananWallet->balance;
+            }
+        }
+
         $data = [
-            'total_anggota' => User::role('Anggota')->count(),
-            'total_simpanan' => Simpanan::sum('amount'),
+            'total_anggota' => $anggota->count(),
+            'total_simpanan' => $totalSimpanan,
             'total_pinjaman_aktif' => Pinjaman::where('status', 'active')->sum('remaining_balance'),
             'penjualan_hari_ini' => SalesTransaction::whereDate('transaction_date', today())
                 ->where('status', 'completed')->sum('total_amount'),

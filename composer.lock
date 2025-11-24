@@ -4,8 +4,101 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c72db357f157527c3c1c798977947f83",
+    "content-hash": "8393444c3201bf78c4c19ebb37bfa4d2",
     "packages": [
+        {
+            "name": "bavix/laravel-wallet",
+            "version": "11.4.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bavix/laravel-wallet.git",
+                "reference": "c0d4bb0ec958135fd65585b883e5460dd997e4d6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bavix/laravel-wallet/zipball/c0d4bb0ec958135fd65585b883e5460dd997e4d6",
+                "reference": "c0d4bb0ec958135fd65585b883e5460dd997e4d6",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "~0.10",
+                "ext-json": "*",
+                "ext-pdo": "*",
+                "illuminate/contracts": "^11.0|^12.0",
+                "illuminate/database": "^11.0|^12.0",
+                "php": "^8.2",
+                "ramsey/uuid": "^4.0"
+            },
+            "require-dev": {
+                "driftingly/rector-laravel": "^2.0",
+                "ergebnis/phpstan-rules": "^2.1",
+                "infection/infection": "~0.27",
+                "larastan/larastan": "^3.0",
+                "laravel/cashier": "^15.0",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^10.0",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.0",
+                "rector/rector": "^2.0",
+                "symplify/easy-coding-standard": "^12.1"
+            },
+            "suggest": {
+                "bavix/laravel-wallet-swap": "Addition to the laravel-wallet library for quick setting of exchange rates",
+                "bavix/laravel-wallet-uuid": "Addition to the laravel-wallet library uuid support in laravel-wallet",
+                "bavix/laravel-wallet-warmup": "Addition to the laravel-wallet library for refresh balance wallets"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Bavix\\Wallet\\WalletServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Bavix\\Wallet\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Babichev Maxim",
+                    "email": "info@babichev.net"
+                }
+            ],
+            "description": "It's easy to work with a virtual wallet.",
+            "homepage": "https://bavix.github.io/laravel-wallet/",
+            "keywords": [
+                "bavix",
+                "credits",
+                "currency",
+                "laravel",
+                "laravel-package",
+                "laravel-wallet",
+                "payments",
+                "virtual",
+                "wallet"
+            ],
+            "support": {
+                "issues": "https://github.com/bavix/laravel-wallet/issues",
+                "source": "https://github.com/bavix/laravel-wallet/tree/11.4.2"
+            },
+            "funding": [
+                {
+                    "url": "https://www.tinkoff.ru/cf/1OkIPwTvTLf",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://opencollective.com/laravel-wallet",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2025-04-13T08:53:43+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.14.0",
@@ -2275,64 +2368,6 @@
                 "source": "https://github.com/Maatwebsite/Laravel-Excel/tree/master"
             },
             "time": "2014-07-10T09:06:07+00:00"
-        },
-        {
-            "name": "mohabmamdouh/wallet",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mohabmamdouh/wallet.git",
-                "reference": "e355b9ae9080fb519325df77b25fbdeb15aebcab"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mohabmamdouh/wallet/zipball/e355b9ae9080fb519325df77b25fbdeb15aebcab",
-                "reference": "e355b9ae9080fb519325df77b25fbdeb15aebcab",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/database": "^10.0|^11.0",
-                "illuminate/support": "^10.0|^11.0",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "orchestra/testbench": "^8.0|^9.0",
-                "phpunit/phpunit": "^10.0"
-            },
-            "default-branch": true,
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "MohabMamdouh\\Wallet\\Providers\\WalletServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MohabMamdouh\\Wallet\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "MohabMamdouh\\Wallet\\Tests\\": "tests/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mohab Mamdouh",
-                    "email": "mohab@example.com"
-                }
-            ],
-            "description": "Advanced Laravel Wallet System for financial platforms",
-            "support": {
-                "source": "https://github.com/mohabmamdouh/wallet/tree/v0.1.0",
-                "issues": "https://github.com/mohabmamdouh/wallet/issues"
-            },
-            "time": "2025-10-11T17:48:24+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -8753,9 +8788,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "mohabmamdouh/wallet": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

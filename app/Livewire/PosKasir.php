@@ -19,7 +19,7 @@ class PosKasir extends Component
     public $customer_search = '';
     public $searched_customers = [];
     public $selected_customer = null;
-    public $customer_credit_info = null;
+    public $customer_wallet_info = null;
 
     public $confirmingTransaction = false;
     public $transactionType = '';
@@ -51,7 +51,7 @@ class PosKasir extends Component
     public function openTransactionHistoryModal()
     {
         $this->showTransactionHistoryModal = true;
-        $this->dispatch('open-modal', 'transaction-history-modal');
+        $this->dispatch('history-modal-render-ready');
     }
 
     public function closeTransactionHistoryModal()
@@ -71,9 +71,6 @@ class PosKasir extends Component
             $query->where('full_name', 'like', '%'.$value.'%')
                   ->orWhere('nrp', 'like', '%'.$value.'%');
         })
-        ->whereHas('roles', function ($q) {
-            $q->where('name', 'Anggota');
-        })
         ->limit(5)
         ->get();
     }
@@ -84,18 +81,18 @@ class PosKasir extends Component
         $this->customer_search = '';
         $this->searched_customers = [];
 
-        $operasionalWallet = $this->selected_customer->getOrCreateWallet('operasional');
-        if ($operasionalWallet) {
-            $this->customer_credit_info = 'Saldo Operasional: Rp ' . number_format($operasionalWallet->balance(), 0, ',', '.');
+        $simpananWallet = $this->selected_customer->getWallet('simpanan');
+        if ($simpananWallet) {
+            $this->customer_wallet_info = 'Saldo Simpanan: Rp ' . number_format($simpananWallet->balance, 0, ',', '.');
         } else {
-            $this->customer_credit_info = 'Tidak ada wallet operasional.';
+            $this->customer_wallet_info = 'Tidak ada wallet simpanan.';
         }
     }
 
     public function clearCustomer()
     {
         $this->selected_customer = null;
-        $this->customer_credit_info = null;
+        $this->customer_wallet_info = null;
     }
 
 
@@ -212,6 +209,7 @@ class PosKasir extends Component
 
         if (!$stock || $stock->current_stock < $quantity) {
             session()->flash('error', 'Stok tidak mencukupi untuk produk ini.');
+            $this->showTransactionHistoryModal = false;
             return false;
         }
 
@@ -310,17 +308,18 @@ class PosKasir extends Component
             return;
         }
 
-        // Credit Card specific logic
-        if ($this->transactionType === 'credit_card') {
+        $simpananWallet = null;
+        // Wallet specific logic
+        if ($this->transactionType === 'wallet') {
             if (!$this->selected_customer) {
-                session()->flash('error', 'Pilih pelanggan untuk transaksi kartu kredit.');
+                session()->flash('error', 'Pilih pelanggan untuk transaksi wallet.');
                 return;
             }
 
-            $operasionalWallet = $this->selected_customer->getWallet('operasional');
+            $simpananWallet = $this->selected_customer->getWallet('simpanan');
 
-            if (!$operasionalWallet || $operasionalWallet->balance() < $this->total) {
-                session()->flash('error', 'Saldo operasional pelanggan tidak mencukupi.');
+            if (!$simpananWallet || $simpananWallet->balance < $this->total) {
+                session()->flash('error', 'Saldo simpanan pelanggan tidak mencukupi.');
                 return;
             }
         }
@@ -337,7 +336,6 @@ class PosKasir extends Component
             'total_amount' => $this->total,
             'payment_method' => $this->transactionType,
             'status' => 'completed',
-            'card_id' => null, // This is now deprecated
         ]);
 
         foreach ($this->cart as $item) {
@@ -380,9 +378,10 @@ class PosKasir extends Component
         // Update cash drawer or wallet
         if ($this->transactionType === 'cash') {
             $this->cashDrawer->increment('total_sales', $this->total);
-        } elseif ($this->transactionType === 'credit_card') {
-            $operasionalWallet = $this->selected_customer->getWallet('operasional');
-            $operasionalWallet->withdraw($this->total, null, ['description' => 'Pembelian di POS', 'reference_id' => $transaction->transaction_id]);
+        } elseif ($this->transactionType === 'wallet') {
+            if ($simpananWallet) { // Check if wallet exists again for safety
+                $simpananWallet->withdraw($this->total, ['description' => 'Pembelian di POS', 'reference_id' => $transaction->transaction_id]);
+            }
         }
 
         $this->reset(['cart', 'total', 'search', 'cashReceived', 'change', 'selected_customer']);

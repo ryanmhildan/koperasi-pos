@@ -2,33 +2,18 @@
 
 namespace App\Livewire;
 
+use Bavix\Wallet\Models\Transaction;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Simpanan;
-use App\Models\User;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
+#[Layout('layouts.app')]
 class SimpananManagement extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $showModal = false;
-    public $editMode = false;
-    public $simpananId;
-    
-    public $user_id, $amount, $transaction_date, $description;
-
-    protected $rules = [
-        'user_id' => 'required|exists:users,user_id',
-        'amount' => 'required|numeric|min:0',
-        'transaction_date' => 'required|date',
-        'description' => 'nullable|string',
-    ];
-
-    public function mount() 
-    {
-        //
-    }
 
     public function updatingSearch()
     {
@@ -37,94 +22,49 @@ class SimpananManagement extends Component
 
     public function create()
     {
-        $this->resetInputFields();
-        $this->transaction_date = now()->format('Y-m-d');
-        $this->showModal = true;
+        // This will open the SimpananFormModal, which now only performs a deposit.
+        $this->dispatch('createSimpanan');
     }
 
-    public function store()
+    /**
+     * Editing and Deleting wallet transactions is not advisable as they are immutable records.
+     * The functions are kept here as placeholders in case a different business logic
+     * (like creating reversal transactions) is decided upon later.
+     */
+    public function edit($transactionId)
     {
-        $this->validate();
-
-        $simpanan = Simpanan::create([
-            'user_id' => $this->user_id,
-            'amount' => $this->amount,
-            'transaction_date' => $this->transaction_date,
-            'description' => $this->description,
-        ]);
-
-        // Tambahkan dana ke wallet user
-        $user = User::find($this->user_id);
-        $user->wallet()->deposit($this->amount, json_encode(['description' => 'Simpanan: ' . $this->description, 'reference_id' => $simpanan->id]));
-
-        session()->flash('message', 'Simpanan berhasil ditambahkan.');
-        $this->closeModal();
+        // Not implemented. Wallet transactions are immutable.
+        session()->flash('error', 'Mengedit transaksi secara langsung tidak diperbolehkan.');
     }
 
-    public function edit($id)
+    public function delete($transactionId)
     {
-        $simpanan = Simpanan::findOrFail($id);
-        $this->simpananId = $id;
-        $this->user_id = $simpanan->user_id;
-        $this->amount = $simpanan->amount;
-        $this->transaction_date = $simpanan->transaction_date->format('Y-m-d');
-        $this->description = $simpanan->description;
-        
-        $this->editMode = true;
-        $this->showModal = true;
+        // Not implemented. Wallet transactions are immutable.
+        session()->flash('error', 'Menghapus transaksi secara langsung tidak diperbolehkan.');
     }
 
-    public function update()
-    {
-        $this->validate();
-
-        $simpanan = Simpanan::findOrFail($this->simpananId);
-        $simpanan->update([
-            'user_id' => $this->user_id,
-            'amount' => $this->amount,
-            'transaction_date' => $this->transaction_date,
-            'description' => $this->description,
-        ]);
-
-        session()->flash('message', 'Simpanan berhasil diupdate.');
-        $this->closeModal();
-    }
-
-    public function delete($id)
-    {
-        Simpanan::find($id)->delete();
-        session()->flash('message', 'Simpanan berhasil dihapus.');
-    }
-
-    public function closeModal()
-    {
-        $this->showModal = false;
-        $this->resetInputFields();
-    }
-
-    private function resetInputFields()
-    {
-        $this->user_id = '';
-        $this->amount = '';
-        $this->transaction_date = '';
-        $this->description = '';
-        $this->editMode = false;
-        $this->simpananId = null;
-    }
-
+    #[On('simpananSaved')]
     public function render()
     {
-        $simpanan = Simpanan::with('user')
-            ->whereHas('user', function($query) {
-                $query->where('full_name', 'like', '%'.$this->search.'%')
-                      ->orWhere('nrp', 'like', '%'.$this->search.'%');
+        $transactions = Transaction::whereHas('wallet', function ($query) {
+            $query->where('slug', 'simpanan');
+        })
+        ->where('type', 'deposit') // Filter to only show deposit transactions
+        ->with('payable') // Eager load the user model
+        ->where(function ($query) {
+            // Search by user name or NRP
+            $query->whereHas('payable', function ($subQuery) {
+                $subQuery->where('full_name', 'like', '%' . $this->search . '%')
+                         ->orWhere('nrp', 'like', '%'.$this->search.'%');
             })
-            ->orWhere('description', 'like', '%'.$this->search.'%')
-            ->orderBy('transaction_date', 'desc')
-            ->paginate(10);
+            // Search by transaction meta description
+            ->orWhereJsonContains('meta->description', $this->search);
+        })
+        ->latest()
+        ->paginate(10);
 
-        $users = User::role('Anggota')->get();
-
-        return view('livewire.simpanan-management', compact('simpanan', 'users'));
+        return view('livewire.simpanan-management', [
+            'transactions' => $transactions,
+        ]);
     }
 }

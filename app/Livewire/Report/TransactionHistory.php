@@ -3,7 +3,7 @@
 namespace App\Livewire\Report;
 
 use Livewire\Component;
-use App\Models\{SalesTransaction, SalesTransactionDetail, Stock, StockMovement, UserCreditCard};
+use App\Models\{SalesTransaction, SalesTransactionDetail, Stock, StockMovement};
 use Livewire\WithPagination;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB; // Import DB facade
@@ -17,7 +17,6 @@ class TransactionHistory extends Component
     public $search;
     public $selectedTransaction;
     public $userId; // New property
-    public $filterByCreditCard = false; // New property
 
     public $confirmingVoid = false; // New property for confirmation modal
     public $transactionToVoidId; // New property to store the ID of the transaction to be voided
@@ -60,7 +59,7 @@ class TransactionHistory extends Component
 
         DB::beginTransaction();
         try {
-            $transaction = SalesTransaction::with('details', 'creditCard', 'cashDrawer')->find($this->transactionToVoidId);
+            $transaction = SalesTransaction::with('details', 'customer', 'cashDrawer')->find($this->transactionToVoidId);
 
             if (!$transaction) {
                 session()->flash('error', 'Transaksi tidak ditemukan.');
@@ -101,14 +100,16 @@ class TransactionHistory extends Component
                 }
             }
 
-            // Revert credit card balance if applicable
-            if ($transaction->payment_method === 'credit_card' && $transaction->card_id && $transaction->creditCard) {
-                $creditCard = $transaction->creditCard;
-                $creditCard->decrement('current_balance', $transaction->total_amount);
+            // Revert wallet balance if applicable
+            if ($transaction->payment_method === 'wallet' && $transaction->customer) {
+                $simpananWallet = $transaction->customer->getWallet('simpanan');
+                if ($simpananWallet) {
+                    $simpananWallet->deposit($transaction->total_amount, ['description' => 'Pembatalan pembelian di POS', 'reference_id' => $transaction->transaction_id]);
+                }
             }
 
             DB::commit();
-            session()->flash('success', 'Transaksi berhasil dibatalkan dan stok/limit dikembalikan.');
+            session()->flash('success', 'Transaksi berhasil dibatalkan dan stok/saldo dikembalikan.');
             $this->reset(['confirmingVoid', 'transactionToVoidId']);
             $this->dispatch('close-modal', 'confirm-void-transaction');
         } catch (\Exception $e) {
@@ -136,10 +137,6 @@ class TransactionHistory extends Component
             // Add this new condition
             ->when($this->userId, function ($query) {
                 $query->where('user_id', $this->userId);
-            })
-            // Make the payment_method filter conditional
-            ->when($this->filterByCreditCard, function ($query) {
-                $query->where('payment_method', 'credit_card');
             })
             ->latest()
             ->paginate(10);

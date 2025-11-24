@@ -1,6 +1,6 @@
 <div class="p-6">
     <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-4">Manajemen Dana Operasional</h2>
+        <h2 class="text-2xl font-bold mb-4">Top Up Saldo Simpanan</h2>
 
         <!-- Search -->
         <div class="mb-4">
@@ -14,7 +14,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NRP</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Operasional</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Simpanan</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -23,10 +23,10 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $user->full_name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $user->nrp }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($user->getWallet('operasional')?->balance() ?? 0, 2, ',', '.') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($user->getWallet('simpanan')?->balance ?? 0, 2, ',', '.') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                 <button wire:click="openModal({{ $user->user_id }})" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                    Kelola Dana
+                                    Top Up Saldo
                                 </button>
                             </td>
                         </tr>
@@ -52,13 +52,12 @@
                 <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                     <form wire:submit.prevent="processTransaction">
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Kelola Dana: {{ $selectedUser->full_name }}</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Top Up Saldo: {{ $selectedUser->full_name }}</h3>
                             <div class="space-y-4">
                                 <div>
                                     <label for="transactionType" class="block text-sm font-medium text-gray-700">Jenis Transaksi</label>
                                     <select wire:model="transactionType" id="transactionType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                                         <option value="deposit">Deposit</option>
-                                        <option value="withdraw">Withdraw</option>
                                     </select>
                                 </div>
                                 <div>

@@ -6,12 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use MohabMamdouh\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Traits\HasWallets;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, HasWallet;
+    use HasFactory, Notifiable, HasRoles, HasWallets;
 
     protected $primaryKey = 'user_id';
     
@@ -30,11 +30,6 @@ class User extends Authenticatable
     ];
 
     // Relationships
-    public function creditCards()
-    {
-        return $this->hasMany(UserCreditCard::class, 'user_id', 'user_id');
-    }
-
     public function simpanan()
     {
         return $this->hasMany(Simpanan::class, 'user_id', 'user_id');

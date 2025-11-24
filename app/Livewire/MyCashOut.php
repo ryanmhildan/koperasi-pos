@@ -24,9 +24,8 @@ class MyCashOut extends Component
 
     public function mount()
     {
-        $user = Auth::user();
-        $simpananWallet = $user->getWallet('simpanan');
-        $this->current_balance = $simpananWallet ? $simpananWallet->balance() : 0;
+        $simpananWallet = Auth::user()->getWallet('simpanan');
+        $this->current_balance = $simpananWallet ? $simpananWallet->balance : 0;
     }
 
     public function requestCashOut()
@@ -36,7 +35,7 @@ class MyCashOut extends Component
         $user = Auth::user();
         $simpananWallet = $user->getWallet('simpanan');
 
-        if (!$simpananWallet || $this->amount > $simpananWallet->balance()) {
+        if (!$simpananWallet || $this->amount > $simpananWallet->balance) {
             $this->dispatch('swal:error', [
                 'title' => 'Gagal!',
                 'text' => 'Saldo simpanan tidak mencukupi.',
@@ -58,6 +57,8 @@ class MyCashOut extends Component
             'title' => 'Berhasil!',
             'text' => 'Pengajuan cash out berhasil dikirim. Mohon tunggu persetujuan dari admin.',
         ]);
+        
+        $this->mount();
     }
 
     public function render()

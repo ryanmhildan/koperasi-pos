@@ -57,9 +57,7 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <x-secondary-button wire:click="manageCard({{ $user->user_id }})">Card</x-secondary-button>
-                                            <x-secondary-button wire:click="edit({{ $user->user_id }})">Edit</x-secondary-button>
-                                            <x-danger-button wire:click="confirmUserDeletion({{ $user->user_id }})">Hapus</x-danger-button>
+                                                        <x-secondary-button wire:click="edit({{ $user->user_id }})">Edit</x-secondary-button>                                            <x-danger-button wire:click="confirmUserDeletion({{ $user->user_id }})">Hapus</x-danger-button>
                                         </td>
                                     </tr>
                                 @empty

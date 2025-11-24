@@ -56,15 +56,15 @@
                             <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->loan_amount, 2, ',', '.') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $item->tenor_months }} bulan</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     @switch($item->status)
                                         @case('pending') bg-yellow-100 text-yellow-800 @break
-                                        @case('approved') bg-green-100 text-green-800 @break
+                                        @case('active') bg-green-100 text-green-800 @break
+                                        @case('closed') bg-blue-100 text-blue-800 @break
                                         @case('rejected') bg-red-100 text-red-800 @break
-                                        @case('paid_off') bg-blue-100 text-blue-800 @break
                                     @endswitch
                                 ">
-                                    {{ ucfirst($item->status) }}
+                                    {{ $item->status_text }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->remaining_balance, 2, ',', '.') }}</td>

@@ -5,186 +5,68 @@ namespace App\Livewire;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Pinjaman;
-use App\Models\Angsuran;
-use App\Models\User;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
+#[Layout('layouts.app')]
 class PinjamanManagement extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $showModal = false;
-    public $editMode = false;
-    public $pinjamanId;
-    public $showDeleteModal = false;
-    public $pinjamanIdToDelete;
-    
-    public $user_id, $loan_amount, $interest_rate, $tenor_months;
-    public $loan_type, $loan_purpose, $loan_date, $status = 'active', $is_blocked = false;
-
-    protected $rules = [
-        'user_id' => 'required|exists:users,user_id',
-        'loan_amount' => 'required|numeric|min:0',
-        'interest_rate' => 'required|numeric|min:0',
-        'tenor_months' => 'required|integer|min:1',
-        'loan_type' => 'required|in:regular,emergency,business',
-        'loan_purpose' => 'required|string',
-        'loan_date' => 'required|date',
-    ];
+    public $statusFilter = 'pending';
+    public $loanTypeFilter = '';
 
     public function updatingSearch()
     {
         $this->resetPage();
     }
-
+    
     public function create()
     {
-        $this->resetInputFields();
-        $this->loan_date = now()->format('Y-m-d');
-        $this->showModal = true;
-    }
-
-    public function store()
-    {
-        $this->validate();
-
-        $monthlyPayment = $this->calculateMonthlyPayment();
-        
-        $pinjaman = Pinjaman::create([
-            'user_id' => $this->user_id,
-            'loan_amount' => $this->loan_amount,
-            'interest_rate' => $this->interest_rate,
-            'tenor_months' => $this->tenor_months,
-            'loan_type' => $this->loan_type,
-            'loan_purpose' => $this->loan_purpose,
-            'loan_date' => $this->loan_date,
-            'status' => $this->status,
-            'is_blocked' => $this->is_blocked,
-            'remaining_balance' => $this->loan_amount,
-        ]);
-
-        // Generate angsuran schedule
-        $this->generateAngsuranSchedule($pinjaman, $monthlyPayment);
-
-        // Tambahkan dana pinjaman ke wallet user
-        $user = User::find($this->user_id);
-        $pinjamanWallet = $user->getOrCreateWallet('pinjaman');
-        $transaction = $pinjamanWallet->deposit($this->loan_amount, null, ['description' => 'Pencairan Pinjaman: ' . $this->loan_purpose, 'reference_id' => $pinjaman->pinjaman_id]);
-        $pinjamanWallet->confirmTransaction($transaction);
-
-        session()->flash('message', 'Pinjaman berhasil ditambahkan.');
-        $this->closeModal();
-    }
-
-    private function calculateMonthlyPayment()
-    {
-        $principal = $this->loan_amount;
-        $rate = $this->interest_rate / 100 / 12; // Monthly rate
-        $months = $this->tenor_months;
-        
-        if ($rate > 0) {
-            return $principal * ($rate * pow(1 + $rate, $months)) / (pow(1 + $rate, $months) - 1);
-        } else {
-            return $principal / $months; // If no interest
-        }
-    }
-
-    private function generateAngsuranSchedule($pinjaman, $monthlyPayment)
-    {
-        $dueDate = \Carbon\Carbon::parse($pinjaman->loan_date);
-        
-        for ($i = 1; $i <= $pinjaman->tenor_months; $i++) {
-            $dueDate->addMonth();
-            
-            Angsuran::create([
-                'pinjaman_id' => $pinjaman->pinjaman_id,
-                'amount' => $monthlyPayment,
-                'due_date' => $dueDate->format('Y-m-d'),
-                'status' => 'pending',
-            ]);
-        }
+        $this->dispatch('createPinjaman');
     }
 
     public function edit($id)
     {
-        $pinjaman = Pinjaman::findOrFail($id);
-        $this->pinjamanId = $id;
-        $this->user_id = $pinjaman->user_id;
-        $this->loan_amount = $pinjaman->loan_amount;
-        $this->interest_rate = $pinjaman->interest_rate;
-        $this->tenor_months = $pinjaman->tenor_months;
-        $this->loan_type = $pinjaman->loan_type;
-        $this->loan_purpose = $pinjaman->loan_purpose;
-        $this->loan_date = $pinjaman->loan_date->format('Y-m-d');
-        $this->status = $pinjaman->status;
-        $this->is_blocked = $pinjaman->is_blocked;
-        
-        $this->editMode = true;
-        $this->showModal = true;
+        $this->dispatch('editPinjaman', id: $id);
     }
 
-    public function update()
+    public function requestApproval($pinjamanId)
     {
-        $this->validate();
-
-        $pinjaman = Pinjaman::findOrFail($this->pinjamanId);
-        $pinjaman->update([
-            'user_id' => $this->user_id,
-            'loan_amount' => $this->loan_amount,
-            'interest_rate' => $this->interest_rate,
-            'tenor_months' => $this->tenor_months,
-            'loan_type' => $this->loan_type,
-            'loan_purpose' => $this->loan_purpose,
-            'loan_date' => $this->loan_date,
-            'status' => $this->status,
-            'is_blocked' => $this->is_blocked,
-        ]);
-
-        session()->flash('message', 'Pinjaman berhasil diupdate.');
-        $this->closeModal();
+        $this->dispatch('openApprovalModal', pinjamanId: $pinjamanId);
     }
-
-    public function delete($id)
+    
+    public function requestDeletion($pinjamanId)
     {
-        Pinjaman::find($id)->delete();
-        session()->flash('message', 'Pinjaman berhasil dihapus.');
+        $this->dispatch('openDeleteModal', pinjamanId: $pinjamanId);
     }
 
-    public function closeModal()
-    {
-        $this->showModal = false;
-        $this->resetInputFields();
-    }
-
-    private function resetInputFields()
-    {
-        $this->user_id = '';
-        $this->loan_amount = '';
-        $this->interest_rate = '';
-        $this->tenor_months = '';
-        $this->loan_type = '';
-        $this->loan_purpose = '';
-        $this->loan_date = '';
-        $this->status = 'active';
-        $this->is_blocked = false;
-        $this->editMode = false;
-        $this->pinjamanId = null;
-    }
-
+    #[On('pinjamanSaved')]
+    #[On('loanApproved')]
+    #[On('loanDeleted')]
+    #[On('loanDeletionFailed')] // Listen for failure to show session message
     public function render()
     {
         $pinjaman = Pinjaman::with('user')
-            ->whereHas('user', function($query) {
-                $query->where('full_name', 'like', '%'.$this->search.'%')
+            ->where(function ($query) {
+                $query->whereHas('user', function($q) {
+                    $q->where('full_name', 'like', '%'.$this->search.'%')
                       ->orWhere('nrp', 'like', '%'.$this->search.'%');
+                })
+                ->orWhere('loan_purpose', 'like', '%'.$this->search.'%');
             })
-            ->orWhere('loan_purpose', 'like', '%'.$this->search.'%')
+            ->when($this->statusFilter, function ($query) {
+                $query->where('status', $this->statusFilter);
+            })
+            ->when($this->loanTypeFilter, function ($query) {
+                $query->where('loan_type', $this->loanTypeFilter);
+            })
             ->orderBy('loan_date', 'desc')
             ->paginate(10);
 
-        $users = User::role('Anggota')->get();
         $loanTypes = ['regular' => 'Regular', 'emergency' => 'Emergency', 'business' => 'Business'];
 
-        return view('livewire.pinjaman-management', compact('pinjaman', 'users', 'loanTypes'));
+        return view('livewire.pinjaman-management', compact('pinjaman', 'loanTypes'));
     }
 }

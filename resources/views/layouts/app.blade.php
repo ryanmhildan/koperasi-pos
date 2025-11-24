@@ -22,7 +22,11 @@
     @livewireScripts
     <livewire:role-form-modal />
     <livewire:user-form-modal />
-    <livewire:user-card-modal />
+    <livewire:simpanan-form-modal />
+    <livewire:pinjaman-form-modal />
+    <livewire:approval-confirmation-modal />
+    <livewire:delete-confirmation-modal />
+    <livewire:mark-as-paid-confirmation-modal />
     <script>
         document.addEventListener('livewire:initialized', () => {
             Livewire.on('swal:success', event => {

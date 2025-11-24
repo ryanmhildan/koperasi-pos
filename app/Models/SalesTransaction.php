@@ -13,7 +13,7 @@ class SalesTransaction extends Model
     
     protected $fillable = [
         'transaction_number', 'user_id', 'cashier_id', 'drawer_id',
-        'card_id', 'transaction_date', 'transaction_time', 'sub_total',
+        'transaction_date', 'transaction_time', 'sub_total',
         'discount', 'total_amount', 'payment_method', 'status', 'notes'
     ];
 
@@ -37,11 +37,6 @@ class SalesTransaction extends Model
     public function cashDrawer()
     {
         return $this->belongsTo(CashDrawer::class, 'drawer_id', 'drawer_id');
-    }
-
-    public function creditCard()
-    {
-        return $this->belongsTo(UserCreditCard::class, 'card_id', 'card_id');
     }
 
     public function details()

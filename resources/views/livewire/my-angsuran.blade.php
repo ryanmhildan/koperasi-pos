@@ -1,77 +1,92 @@
-<div class="p-6">
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-4">Angsuran Saya</h2>
+<div>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Angsuran Saya') }}
+        </h2>
+    </x-slot>
 
-        <!-- Loan Selection and Payment Form -->
-        <div class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-1">
-                    <label for="pinjaman_id" class="block text-sm font-medium text-gray-700">Pilih Pinjaman</label>
-                    <select wire:model.live="pinjaman_id" id="pinjaman_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="">-- Pilih Pinjaman --</option>
-                        @foreach($loans as $loan)
-                            <option value="{{ $loan->pinjaman_id }}">
-                                Pinjaman Rp {{ number_format($loan->loan_amount, 0, ',', '.') }} - {{ $loan->loan_purpose }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
 
-                @if($pinjaman_id)
-                <div class="md:col-span-2">
-                    <form wire:submit.prevent="payAngsuran">
-                        <div class="flex items-end space-x-4">
-                            <div class="flex-grow">
-                                <label for="amount" class="block text-sm font-medium text-gray-700">Jumlah Pembayaran</label>
-                                <input wire:model="amount" type="number" id="amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 sm:text-sm" readonly>
-                                @error('amount') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    {{-- Loan Selection --}}
+                    <div class="mb-4">
+                        <label for="pinjaman_id" class="block font-medium text-sm text-gray-700">Pilih Pinjaman</label>
+                        <select id="pinjaman_id" wire:model.live="pinjaman_id" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="">-- Pilih Pinjaman --</option>
+                            @foreach($loans as $loan)
+                                <option value="{{ $loan->pinjaman_id }}">
+                                    Pinjaman #{{ $loan->pinjaman_id }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($pinjaman)
+                        {{-- Payment Form --}}
+                        <div class="mb-4 p-4 border rounded-md">
+                            <h3 class="font-semibold text-lg mb-2">Pembayaran Angsuran</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block font-medium text-sm text-gray-700">Sisa Pinjaman</label>
+                                    <p class="mt-1 text-lg font-bold">Rp {{ number_format($pinjaman->remaining_balance, 0, ',', '.') }}</p>
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-sm text-gray-700">Jumlah Angsuran Bulanan</label>
+                                    <p class="mt-1 text-lg font-bold">Rp {{ number_format($amount, 0, ',', '.') }}</p>
+                                </div>
                             </div>
-                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                                Bayar Angsuran
-                            </button>
+                            <div class="mt-4">
+                                <x-primary-button wire:click="payAngsuran">
+                                    Bayar Angsuran
+                                </x-primary-button>
+                            </div>
                         </div>
-                    </form>
+
+                        {{-- Installment List --}}
+                        <div>
+                            <h3 class="font-semibold text-lg mb-2">Riwayat Angsuran</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jatuh Tempo</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Bayar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @forelse ($installments as $installment)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($installment->due_date)->isoFormat('D MMM YYYY') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ number_format($installment->amount, 0, ',', '.') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                        @if($installment->status == 'paid') bg-green-100 text-green-800
+                                                        @elseif($installment->status == 'pending' && $installment->due_date < now()) bg-red-100 text-red-800
+                                                        @else bg-yellow-100 text-yellow-800 @endif">
+                                                        {{ $installment->status == 'pending' && $installment->due_date < now() ? 'Overdue' : ucfirst($installment->status) }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $installment->paid_date ? \Carbon\Carbon::parse($installment->paid_date)->isoFormat('D MMM YYYY') : '-' }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                                                    Tidak ada data angsuran untuk pinjaman ini.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-                @endif
             </div>
         </div>
-
-        <!-- Angsuran History Table -->
-        @if($pinjaman_id)
-        <div class="overflow-x-auto">
-            <h3 class="text-lg font-semibold mb-2">Riwayat Angsuran</h3>
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Jatuh Tempo</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Bayar</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Denda</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($installments as $item)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($item->due_date)->format('d M Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->paid_date ? \Carbon\Carbon::parse($item->paid_date)->format('d M Y') : '-' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->amount, 2, ',', '.') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->denda, 2, ',', '.') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ $item->status_badge_color }}-100 text-{{ $item->status_badge_color }}-800">
-                                    {{ $item->status_text }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Belum ada riwayat angsuran untuk pinjaman ini.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @endif
-
     </div>
+    @livewire('pay-angsuran-confirmation-modal')
 </div>

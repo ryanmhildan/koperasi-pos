@@ -1,9 +1,16 @@
 <div class="p-6">
     <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-4">Simpanan Saya</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Simpanan Saya</h2>
+            <div class="text-right">
+                <p class="text-lg text-gray-600">Total Saldo Simpanan</p>
+                <p class="text-2xl font-bold text-green-600">Rp {{ number_format($wallet?->balance ?? 0, 2, ',', '.') }}</p>
+            </div>
+        </div>
 
         <!-- Form to Add Simpanan -->
-        <form wire:submit.prevent="saveSimpanan" class="mb-6">
+        <form wire:submit.prevent="saveSimpanan" class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Tambah Simpanan Baru</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label for="amount" class="block text-sm font-medium text-gray-700">Jumlah</label>
@@ -24,25 +31,32 @@
         </form>
 
         <!-- Simpanan Table -->
+        <h3 class="text-lg font-semibold mb-2">Riwayat Transaksi Simpanan</h3>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($simpanan as $item)
+                    @forelse ($transactions as $transaction)
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($item->transaction_date)->format('d M Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->amount, 2, ',', '.') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $item->description }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $transaction->created_at->format('d M Y, H:i') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $transaction->type === 'deposit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $transaction->type }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($transaction->amount, 2, ',', '.') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $transaction->meta['description'] ?? '' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Belum ada data simpanan.</td>
+                            <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Belum ada data simpanan.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -50,7 +64,7 @@
         </div>
 
         <div class="mt-4">
-            {{ $simpanan->links() }}
+            {{ $transactions->links() }}
         </div>
     </div>
 </div>

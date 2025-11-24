@@ -9,10 +9,11 @@ class CashOutTransaction extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'cashout_id';
+    protected $table = 'cash_out_transactions';
+    protected $primaryKey = 'cash_out_id';
     
     protected $fillable = [
-        'card_id', 'amount', 'transaction_date', 'notes'
+        'user_id', 'amount', 'transaction_date', 'notes', 'status', 'processed_by'
     ];
 
     protected $casts = [
@@ -20,8 +21,13 @@ class CashOutTransaction extends Model
         'transaction_date' => 'date',
     ];
 
-    public function creditCard()
+    public function user()
     {
-        return $this->belongsTo(UserCreditCard::class, 'card_id', 'card_id');
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function processor()
+    {
+        return $this->belongsTo(User::class, 'processed_by', 'user_id');
     }
 }

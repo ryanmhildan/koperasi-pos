@@ -12,9 +12,7 @@ use App\Livewire\UserManagement;
 use App\Livewire\RoleManagement;
 use App\Livewire\Report\TransactionHistory;
 use App\Livewire\Report\ShiftHistory;
-use App\Livewire\MyCreditCard;
 use App\Livewire\CashOutManagement;
-use App\Livewire\MyCreditCardHistory; // New use statement
 
 Route::get('/', function () {
     return redirect('/login');
@@ -22,8 +20,6 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
-    Route::get('/my-credit-card', MyCreditCard::class)->name('my-credit-card');
-    Route::get('/my-credit-card/history', MyCreditCardHistory::class)->name('my-credit-card.history');
 
     // Member Routes
     Route::middleware(['auth'])->prefix('me')->name('me.')->group(function () {
@@ -31,15 +27,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/pinjaman', \App\Livewire\MyPinjaman::class)->name('pinjaman')->middleware('permission:view own pinjaman');
         Route::get('/angsuran', \App\Livewire\MyAngsuran::class)->name('angsuran')->middleware('permission:view own angsuran');
         Route::get('/cashout', \App\Livewire\MyCashOut::class)->name('cashout')->middleware('permission:view own cashout');
-        Route::get('/history', \App\Livewire\MyTransactionHistory::class)->name('history')->middleware('permission:view own transaction history');
+        Route::get('/wallet-history', \App\Livewire\MyWalletHistory::class)->name('wallet-history')->middleware('permission:isAnggota');
+        Route::get('/summary', \App\Livewire\MySummary::class)->name('summary')->middleware('permission:isAnggota');
     });
 
     // Koperasi Routes
     Route::prefix('koperasi')->name('koperasi.')->group(function () {
+        Route::get('/dashboard', \App\Livewire\KoperasiDashboard::class)->name('dashboard')->middleware('permission:view koperasi dashboard');
+        Route::get('/financial-summary', \App\Livewire\UserFinancialSummary::class)->name('financial-summary')->middleware('permission:view koperasi dashboard');
         Route::get('/simpanan', SimpananManagement::class)->name('simpanan');
         Route::get('/pinjaman', PinjamanManagement::class)->name('pinjaman');
-        Route::get('/angsuran', AngsuranManagement::class)->name('angsuran');
-        Route::get('/cashout', CashOutManagement::class)->name('cashout');
+        Route::get('/angsuran/{pinjamanId?}', \App\Livewire\AdminAngsuranManagement::class)->name('angsuran');
+        Route::get('/cashout', \App\Livewire\AdminCashOutManagement::class)->name('cashout');
     });
 
     // POS Routes
@@ -69,8 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/locations', \App\Livewire\LocationManagement::class)->name('locations');
         Route::get('/categories', \App\Livewire\CategoryManagement::class)->name('categories');
         Route::get('/units', \App\Livewire\UnitManagement::class)->name('units');
-        Route::get('/credit-cards', \App\Livewire\UserCreditCardManagement::class)->name('credit-cards');
-        Route::get('/operasional', \App\Livewire\OperasionalManagement::class)->name('operasional');
+        Route::get('/top-up-simpanan', \App\Livewire\TopUpSimpanan::class)->name('top-up-simpanan');
     });
     
     // Profile route from Laravel Breeze

@@ -28,12 +28,18 @@ class MyPinjaman extends Component
     {
         $this->validate();
 
+        $loanTypeMapping = [
+            'biasa' => 'regular',
+            'khusus' => 'business',
+            'darurat' => 'emergency',
+        ];
+
         Pinjaman::create([
             'user_id' => Auth::id(),
             'loan_amount' => $this->loan_amount,
             'interest_rate' => 1.5, // Default interest rate
             'tenor_months' => $this->tenor_months,
-            'loan_type' => $this->loan_type,
+            'loan_type' => $loanTypeMapping[$this->loan_type],
             'loan_purpose' => $this->loan_purpose,
             'loan_date' => now(),
             'status' => 'pending',

@@ -45,7 +45,7 @@
             <div class="lg:col-span-1 bg-white rounded-lg shadow-md p-4 flex flex-col h-full">
                 <div class="mb-4">
                     <div class="flex items-center space-x-2">
-                        <x-input-label for="customer_search" value="Pelanggan (untuk bayar kredit)" />
+                        <x-input-label for="customer_search" value="Pelanggan (untuk bayar via wallet)" />
                         <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F2</kbd>
                     </div>
                     @if ($selected_customer)
@@ -53,8 +53,8 @@
                             <div>
                                 <p class="font-semibold">{{ $selected_customer->full_name }}</p>
                                 <p class="text-sm text-gray-600">NRP: {{ $selected_customer->nrp }}</p>
-                                @if($customer_credit_info)
-                                    <p class="text-sm font-semibold {{ str_contains($customer_credit_info, 'Tidak ada') ? 'text-red-500' : 'text-blue-600' }}">{{ $customer_credit_info }}</p>
+                                @if($customer_wallet_info)
+                                    <p class="text-sm font-semibold {{ str_contains($customer_wallet_info, 'Tidak ada') ? 'text-red-500' : 'text-blue-600' }}">{{ $customer_wallet_info }}</p>
                                 @endif
                             </div>
                             <button wire:click="clearCustomer" class="text-red-500 hover:text-red-700 font-bold text-xl">&times;</button>
@@ -63,9 +63,12 @@
                         <div class="relative">
                             <x-text-input id="customer_search" type="text" class="mt-1 block w-full" wire:model.live.debounce.300ms="customer_search" placeholder="Cari nama atau NRP..." />
                             @if(count($searched_customers) > 0)
-                                <div class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
+                                <div id="customer-results-grid" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
                                     @foreach($searched_customers as $customer)
-                                        <div wire:click="selectCustomer({{ $customer->user_id }})" class="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                        <div wire:key="customer-{{ $customer->user_id }}"
+                                             wire:click="selectCustomer({{ $customer->user_id }})"
+                                             data-customer-id="{{ $customer->user_id }}"
+                                             class="customer-item px-4 py-2 cursor-pointer hover:bg-gray-100">
                                             {{ $customer->full_name }} ({{ $customer->nrp }})
                                         </div>
                                     @endforeach
@@ -78,7 +81,7 @@
                 <h2 class="text-xl font-semibold mb-4">Keranjang</h2>
                 <div class="flex-grow overflow-y-auto">
                     @forelse ($cart as $id => $item)
-                        <div class="flex justify-between items-center mb-3">
+                        <div wire:key="cart-{{ $id }}" class="flex justify-between items-center mb-3">
                             <div>
                                 <p class="font-semibold">{{ $item['name'] }}</p>
                                 <p class="text-sm text-gray-600">Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
@@ -119,8 +122,8 @@
                             <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F4</kbd>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <x-primary-button id="btn-process-credit" wire:click="confirmTransaction('credit_card')" class="w-full justify-center" :disabled="empty($cart) || !$selected_customer">
-                                Proses Kartu Kredit
+                            <x-primary-button id="btn-process-wallet" wire:click="confirmTransaction('wallet')" class="w-full justify-center" :disabled="empty($cart) || !$selected_customer">
+                                Proses Wallet
                             </x-primary-button>
                             <kbd class="font-sans text-sm font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">F6</kbd>
                         </div>
@@ -151,7 +154,7 @@
                 </div>
                 <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[75vh] overflow-y-auto p-2 bg-gray-50 rounded-lg" tabindex="0">
                     @forelse ($products as $product)
-                <div wire:click="addToCart({{ $product['product_id'] }}, {{ (float)$product['location_selling_price'] }})" data-product-id="{{ $product['product_id'] }}" data-product-price="{{ $product['location_selling_price'] }}" class="product-item cursor-pointer border rounded-lg p-3 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col justify-between aspect-square">
+                <div wire:key="product-{{ $product['product_id'] }}" wire:click="addToCart({{ $product['product_id'] }}, {{ (float)$product['location_selling_price'] }})" data-product-id="{{ $product['product_id'] }}" data-product-price="{{ $product['location_selling_price'] }}" class="product-item cursor-pointer border rounded-lg p-3 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col justify-between aspect-square">
                             <div>
                                 <p class="font-bold text-sm">{{ $product['product_name'] }}</p>
                                 <p class="text-xs text-gray-500">{{ $product['category_name'] ?? '' }}</p>
@@ -206,6 +209,7 @@
         </x-slot>
     </x-confirmation-modal>
 
+    @if($showTransactionHistoryModal)
     <x-modal name="transaction-history-modal" maxWidth="7xl">
         <div class="p-6">
             <h2 class="text-lg font-medium text-gray-900 border-b pb-3 mb-4">
@@ -223,6 +227,7 @@
             </div>
         </div>
     </x-modal>
+    @endif
 </div>
 
 @push('scripts')
@@ -247,17 +252,26 @@
     }
 </style>
 <script>
-    document.addEventListener('livewire:init', () => {
+    document.addEventListener('livewire:initialized', () => {
         // Force close the history modal on initial load as a safeguard
         window.dispatchEvent(new CustomEvent('close-modal', { detail: 'transaction-history-modal' }));
+
+        Livewire.on('history-modal-render-ready', () => {
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('open-modal', { detail: 'transaction-history-modal' }));
+            }, 50);
+        });
 
         const searchInput = document.getElementById('product-search-bar');
         const customerSearchInput = document.getElementById('customer_search');
         const cashReceivedInput = document.getElementById('cash_received');
         const productGrid = document.getElementById('product-grid');
+        const customerResultsGrid = document.getElementById('customer-results-grid');
         
         let selectedIndex = -1;
         let productItems = [];
+        let selectedCustomerIndex = -1;
+        let customerItems = [];
 
         const updateProductItems = () => {
             if (productGrid) {
@@ -265,9 +279,29 @@
             }
         };
 
+        const updateCustomerItems = () => {
+            const grid = document.getElementById('customer-results-grid');
+            if (grid) {
+                customerItems = grid.querySelectorAll('.customer-item');
+            } else {
+                customerItems = [];
+            }
+        };
+
         const updateHighlight = () => {
             productItems.forEach((item, index) => {
                 if (index === selectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        };
+
+        const updateCustomerHighlight = () => {
+            customerItems.forEach((item, index) => {
+                if (index === selectedCustomerIndex) {
                     item.classList.add('selected');
                     item.scrollIntoView({ block: 'nearest' });
                 } else {
@@ -282,13 +316,25 @@
             updateHighlight();
         };
 
+        const resetCustomerSelection = () => {
+            selectedCustomerIndex = -1;
+            updateCustomerItems();
+            updateCustomerHighlight();
+        };
+
         // Initial load
         updateProductItems();
+        updateCustomerItems();
 
         // Reset selection when Livewire updates the DOM
         Livewire.hook('morph.updated', ({ el, component }) => {
-            if (component.id === @this.id && el.id === 'product-grid') {
-                resetSelection();
+            if (component.id === @this.id) {
+                if (el.id === 'product-grid') {
+                    resetSelection();
+                }
+                if (el.id === 'customer-results-grid') {
+                    resetCustomerSelection();
+                }
             }
         });
 
@@ -373,6 +419,39 @@
                             const productId = productItems[selectedIndex].dataset.productId;
                             const price = productItems[selectedIndex].dataset.productPrice;
                             @this.call('addToCart', productId, price);
+                        }
+                        break;
+                }
+            }
+
+            // Navigate customer results when the customer search input is focused
+            if (activeElement === customerSearchInput) {
+                updateCustomerItems(); // Ensure items are fresh
+                switch (event.key) {
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        if (selectedCustomerIndex < customerItems.length - 1) {
+                            selectedCustomerIndex++;
+                        } else {
+                            selectedCustomerIndex = 0; // Loop to top
+                        }
+                        updateCustomerHighlight();
+                        break;
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        if (selectedCustomerIndex > 0) {
+                            selectedCustomerIndex--;
+                        } else {
+                            selectedCustomerIndex = customerItems.length - 1; // Loop to bottom
+                        }
+                        updateCustomerHighlight();
+                        break;
+                    case 'Enter':
+                        if (selectedCustomerIndex !== -1 && customerItems[selectedCustomerIndex]) {
+                            event.preventDefault();
+                            event.stopImmediatePropagation();
+                            const customerId = customerItems[selectedCustomerIndex].dataset.customerId;
+                            @this.call('selectCustomer', customerId);
                         }
                         break;
                 }
