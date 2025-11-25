@@ -25,7 +25,7 @@ class Dashboard extends Component
     // =======================
     $this->adminMenu = [
         // DASHBOARD
-        ['label' => 'Dashboard', 'description' => 'Halaman utama admin.', 'route' => 'admin.dashboard', 'permission' => 'view reports'],
+        // ['label' => 'Dashboard', 'description' => 'Halaman utama admin.', 'route' => 'admin.dashboard', 'permission' => 'view reports'],
 
         // MANAJEMEN PENGGUNA
         ['label' => 'Pengguna', 'description' => 'Kelola pengguna.', 'route' => 'admin.users', 'permission' => 'view users'],

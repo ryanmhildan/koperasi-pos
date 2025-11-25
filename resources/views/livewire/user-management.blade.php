@@ -15,6 +15,21 @@
                         </div>
                     @endif
 
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg" role="alert">
+                            <h3 class="font-bold">Total User</h3>
+                            <p class="text-2xl">{{ $totalUsers }}</p>
+                        </div>
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg" role="alert">
+                            <h3 class="font-bold">User Aktif</h3>
+                            <p class="text-2xl">{{ $activeUsers }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                            <h3 class="font-bold">User Tidak Aktif</h3>
+                            <p class="text-2xl">{{ $inactiveUsers }}</p>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-center mb-4">
                         <x-primary-button wire:click="create">
                             Tambah Pengguna

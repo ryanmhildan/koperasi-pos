@@ -15,6 +15,7 @@ class UserManagement extends Component
     use WithPagination;
 
     public $search = '';
+    public $totalUsers, $activeUsers, $inactiveUsers;
 
     public $user_id;
     public $confirmingUserDeletion = false;
@@ -52,6 +53,10 @@ class UserManagement extends Component
     #[On('userSaved')]
     public function render()
     {
+        $this->totalUsers = User::count();
+        $this->activeUsers = User::where('is_active', true)->count();
+        $this->inactiveUsers = User::where('is_active', false)->count();
+
         $users = User::with('roles')
             ->where(function($query) {
                 $query->where('full_name', 'like', '%'.$this->search.'%')
