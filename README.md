@@ -398,11 +398,3 @@ Route::middleware(['auth'])->group(function() {
 
 ---
 
-## 12. Langkah selanjutnya (apa yang akan aku kerjakan sekarang)
-
-1. Buat skeleton repo (struktur folder, composer.json) & contoh file konfigurasi (`tailwind.config.js`, `vite.config.js`), Breeze & Spatie setup steps (otomatis di README).
-2. Siapkan migration files utama (users, products, locations, prices, stock, good\_receipt\_notes, stock\_movements, sales\_transactions, sales\_transaction\_details, cash\_drawers, simpanan, pinjaman, angsuran, user\_credit\_cards).
-3. Buat seeder contoh (users, roles, locations, products).
-4. Buat contoh Livewire component `GRNCreate` dan `POSRegister` skeleton dengan kode perhitungan harga rata-rata.
-
-Kalau kamu setuju, ketik **"lanjut buat repo"** dan aku akan mulai membuat file-file scaffold (aku akan menaruh semua file contoh di repo yang nanti bisa kamu clone). Jika ada tambahan permintaan khusus (misal: nama repo GitHub), sebutkan sekarang; kalau tidak, aku mulai dengan repo bernama `koperasi-web`.
